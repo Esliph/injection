@@ -11,7 +11,7 @@ Injection.InjectableService('ServiceParent', ServiceParent)
 
 @Injection.Injectable('Service')
 class Service {
-    constructor(@Injection.Inject('ServiceParent') private service1: ServiceParent) {}
+    constructor(@Injection.Inject('ServiceParent') private service1: ServiceParent) { }
 
     log(str: string) {
         this.service1.log(str)
@@ -20,7 +20,7 @@ class Service {
 
 @Injection.Injectable('Service2')
 class Service2 {
-    constructor(@Injection.Inject('ServiceParent') private service1: ServiceParent) {}
+    constructor(@Injection.Inject('ServiceParent') private service1: ServiceParent) { }
 
     log(str: string) {
         this.service1.log(str)
@@ -29,13 +29,11 @@ class Service2 {
 
 @Injection.Injectable('Controller')
 class Controller {
-    constructor(@Injection.Inject('Service') private service: ServiceParent) {}
+    constructor(@Injection.Inject('Service') private service: ServiceParent) { }
 }
 
 Injection.whenCall('Service').use('Service2')
 
-const instance = Injection.resolve(Controller)
+const instance = Injection.resolve('Controller')
 
 console.log(instance)
-
-// console.log(Injection.getInstance('Controller'))

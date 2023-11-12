@@ -6,8 +6,8 @@ export class Injection {
     static Injectable = Injectable
     static InjectableService = AddService
     static Inject = Inject
-    static resolve<T extends ClassConstructor>(classConstructor: T) {
-        return Resolve<T>(classConstructor)
+    static resolve<T extends ClassConstructor>(target: string | T) {
+        return Resolve<T>(target)
     }
     static whenCall = WhenCall
 }
@@ -15,14 +15,14 @@ export class Injection {
 function Injectable(key?: string) {
     const handler = key
         ? (constructor: any) => {
-              AddService(key, constructor)
+            AddService(key, constructor)
 
-              return DecoratorMetadata.Create.Class({
-                  key: `class.injectable.${key}`,
-                  value: (constructor: any) => constructor,
-              })
-          }
-        : () => {}
+            return DecoratorMetadata.Create.Class({
+                key: `class.injectable.${key}`,
+                value: (constructor: any) => constructor,
+            })
+        }
+        : () => { }
 
     return DecoratorMetadata.Create.Class({ key: 'class.injectable', value: true }, handler)
 }
