@@ -37,3 +37,11 @@ Injection.whenCall('Service').use('Service2')
 const instance = Injection.resolve('Controller')
 
 console.log(instance)
+
+try {
+    // Exemplo of the exception
+    // @ts-expect-error
+    Injection.resolve()
+} catch (err: any) {
+    console.log(err.message)
+}

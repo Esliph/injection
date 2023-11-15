@@ -46,6 +46,10 @@ function Inject(key: string) {
 function Resolve<T extends ClassConstructor>(target: string | T): InstanceType<T> {
     let Instance: ClassConstructor | null = null
 
+    if (typeof target == 'undefined') {
+        throw new Error('Target to resolve cannot be undefined')
+    }
+
     if (typeof target == 'string') {
         Instance = getService<T>(target)
     } else {
