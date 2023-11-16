@@ -17,10 +17,12 @@ function Clear() {
     InjectionRepository.clear()
 }
 
-function Injectable(key?: string) {
+type InjectableOptions = { ignoreIfExists: boolean, overwrite: boolean }
+
+function Injectable(key?: string, options?: Partial<InjectableOptions>) {
     const handler = key
         ? (constructor: any) => {
-            AddService(key, constructor)
+            AddService(key, constructor, options)
 
             return DecoratorMetadata.Create.Class({
                 key: `class.injectable.${key}`,
@@ -87,7 +89,7 @@ function Resolve<T extends ClassConstructor>(target: string | T): InstanceType<T
 }
 
 function WhenCall(serviceName: string) {
-    function use(target: string | ClassConstructor<any>) {
+    function use(target: string | ClassConstructor<any>, options?: Omit<Partial<InjectableOptions>, 'overwrite'>) {
         let classConstructor: ClassConstructor<any> | null = null
 
         if (typeof target == 'string') {
@@ -96,7 +98,7 @@ function WhenCall(serviceName: string) {
             classConstructor = target
         }
 
-        AddService(serviceName, classConstructor, true)
+        AddService(serviceName, classConstructor, { ...options, overwrite: true })
     }
 
     return {
@@ -104,8 +106,8 @@ function WhenCall(serviceName: string) {
     }
 }
 
-function AddService(key: string, service: ClassConstructor, overwrite = false) {
-    InjectionRepository.add(key, service, overwrite)
+function AddService(key: string, service: ClassConstructor, options?: Partial<InjectableOptions>) {
+    InjectionRepository.add(key, service, options)
 }
 
 function getService<T>(key: string) {

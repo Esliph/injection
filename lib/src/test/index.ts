@@ -18,6 +18,15 @@ class Service {
     }
 }
 
+@Injection.Injectable('Service', { ignoreIfExists: true })
+class Service3 {
+    constructor(@Injection.Inject('ServiceParent') private service1: ServiceParent) { }
+
+    log(str: string) {
+        this.service1.log(str)
+    }
+}
+
 @Injection.Injectable('Service2')
 class Service2 {
     constructor(@Injection.Inject('ServiceParent') private service1: ServiceParent) { }

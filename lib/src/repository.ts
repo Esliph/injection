@@ -3,8 +3,12 @@ import { ClassConstructor } from '@esliph/metadata'
 export class InjectionRepository {
     private static services: { [s: string | symbol]: ClassConstructor } = {}
 
-    static add(serviceName: string, classConstructor: ClassConstructor, overwrite = false) {
-        if (InjectionRepository.get(serviceName) && !overwrite) {
+    static add(serviceName: string, classConstructor: ClassConstructor, options: { overwrite?: boolean, ignoreIfExists?: boolean } = {}) {
+        if (InjectionRepository.get(serviceName) && !options.overwrite) {
+            if (options.ignoreIfExists) {
+                return
+            }
+
             throw new Error(`Service already defined with name "${serviceName}"`)
         }
 
