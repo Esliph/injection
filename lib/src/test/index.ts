@@ -1,44 +1,36 @@
 import { Injection } from '..'
+import { InjectableType } from '../type'
 
 @Injection.Injectable()
-class ServiceParent {
-    log(str: string) {
-        console.log(str)
-    }
-}
+class ServiceParent {}
 
 Injection.InjectableService('ServiceParent', ServiceParent)
 
 @Injection.Injectable('Service')
-class Service {
-    constructor(@Injection.Inject('ServiceParent') private service1: ServiceParent) { }
-
-    log(str: string) {
-        this.service1.log(str)
+class Service extends ServiceParent {
+    constructor() {
+        super()
     }
 }
 
 @Injection.Injectable('Service', { ignoreIfExists: true })
-class Service3 {
-    constructor(@Injection.Inject('ServiceParent') private service1: ServiceParent) { }
-
-    log(str: string) {
-        this.service1.log(str)
+class Service3 extends ServiceParent {
+    constructor(@Injection.Inject('ServiceParent') private service1: ServiceParent) {
+        super()
     }
 }
 
-@Injection.Injectable('Service2')
-class Service2 {
-    constructor(@Injection.Inject('ServiceParent') private service1: ServiceParent) { }
-
-    log(str: string) {
-        this.service1.log(str)
+@Injection.Injectable('Service2', { type: InjectableType.UNIQUE_INSTANCE })
+class Service2 extends ServiceParent {
+    constructor() {
+        super()
+        console.log('!')
     }
 }
 
 @Injection.Injectable('Controller')
 class Controller {
-    constructor(@Injection.Inject('Service') private service: ServiceParent) { }
+    constructor(@Injection.Inject('Service') private service: ServiceParent, @Injection.Inject('Service') private service1: ServiceParent) {}
 }
 
 Injection.whenCall('Service').use('Service2')
