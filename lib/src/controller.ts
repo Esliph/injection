@@ -10,6 +10,11 @@ export class Injection {
         return Resolve<T>(target)
     }
     static whenCall = WhenCall
+    static Clear = Clear
+}
+
+function Clear() {
+    InjectionRepository.clear()
 }
 
 function Injectable(key?: string) {

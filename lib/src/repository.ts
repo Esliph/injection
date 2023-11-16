@@ -14,4 +14,8 @@ export class InjectionRepository {
     static get<T>(serviceName: string) {
         return InjectionRepository.services[Symbol.for(serviceName)] as ClassConstructor<T>
     }
+
+    static clear() {
+        this.services = {}
+    }
 }
