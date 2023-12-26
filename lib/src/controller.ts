@@ -13,6 +13,7 @@ export class Injection {
     }
     static whenCall = WhenCall
     static Clear = Clear
+    static getService = getService
 }
 
 function Clear() {
