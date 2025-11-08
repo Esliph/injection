@@ -1,6 +1,5 @@
 import { Scope } from '@enums/scope'
-
-export type ClassConstructor<T = any> = new (...args: any[]) => T
+import { ClassConstructor } from '@utils/types'
 
 export type DependencyToken = string | ClassConstructor
 
