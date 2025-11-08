@@ -1,7 +1,7 @@
 import { Scope } from '@enums/scope'
 import { InjectionRegisterException } from '@exceptions/register.exception'
 import { DependencyRepository } from '@repositories/dependency.repository'
-import { DependencyContainer } from '@services/dependency.container'
+import { DependencyContainer, DependencyRegister } from '@services/dependency.container'
 import { beforeEach, describe, expect, test } from 'vitest'
 
 describe('Tests for registering Dependency', () => {
@@ -14,7 +14,7 @@ describe('Tests for registering Dependency', () => {
   })
 
   test('Expected to register a simple dependency', () => {
-    const dependency = {
+    const dependency: DependencyRegister = {
       token: 'TOKEN',
       scope: Scope.REQUEST,
       useValue: 10
@@ -26,7 +26,7 @@ describe('Tests for registering Dependency', () => {
   })
 
   test('Expected to register the dependency with the applied default values', () => {
-    const dependency = {
+    const dependency: DependencyRegister = {
       token: 'TOKEN',
       useValue: 10
     }
@@ -37,15 +37,15 @@ describe('Tests for registering Dependency', () => {
   })
 
   test('It is expected that an exception will be thrown when the Token is not provided', () => {
-    const dependency = {
+    const dependency: DependencyRegister = {
       useValue: 10
-    }
+    } as any
 
     expect(() => container.register(dependency as any)).toThrowError(InjectionRegisterException)
   })
 
   test('It is expected that an exception will be thrown when the creation method is not specified', () => {
-    const dependency = {
+    const dependency: DependencyRegister = {
       token: 'TOKEN'
     }
 
@@ -55,7 +55,7 @@ describe('Tests for registering Dependency', () => {
   test('An exception is expected to be thrown if both useClass and useValue are specified simultaneously', () => {
     class TestClass { }
 
-    const dependency = {
+    const dependency: DependencyRegister = {
       token: 'TOKEN',
       useClass: TestClass,
       useValue: 10,
@@ -67,7 +67,7 @@ describe('Tests for registering Dependency', () => {
   test('An exception is expected to be thrown if both useClass and useFactory are specified simultaneously', () => {
     class TestClass { }
 
-    const dependency = {
+    const dependency: DependencyRegister = {
       token: 'TOKEN',
       useClass: TestClass,
       useFactory: () => { },
@@ -77,10 +77,19 @@ describe('Tests for registering Dependency', () => {
   })
 
   test('An exception is expected to be thrown if both useClass and useFactory are specified simultaneously', () => {
-    const dependency = {
+    const dependency: DependencyRegister = {
       token: 'TOKEN',
       useFactory: () => { },
       useValue: 10,
+    }
+
+    expect(() => container.register(dependency as any)).toThrowError(InjectionRegisterException)
+  })
+
+  test('An exception is expected to be thrown when useClass does not receive a class', () => {
+    const dependency: DependencyRegister = {
+      token: 'TOKEN',
+      useClass: 10 as any,
     }
 
     expect(() => container.register(dependency as any)).toThrowError(InjectionRegisterException)
