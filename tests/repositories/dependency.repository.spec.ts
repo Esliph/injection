@@ -21,4 +21,8 @@ describe('Dependency Repository Tests', () => {
 
     expect(repository.get(dependency.token)).toEqual(dependency)
   })
+
+  test('Null is expected to be returned when an unregistered token is provided', () => {
+    expect(repository.get('TOKEN')).toBeNull()
+  })
 })
