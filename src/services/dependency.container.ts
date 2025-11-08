@@ -30,7 +30,9 @@ export class DependencyContainer {
     }
 
     if (dependency.useClass && !isClass(dependency.useClass)) {
-      throw new InjectionRegisterException(`It was expected that useClass would be a class, but a "${typeof dependency.useClass}" was received`)
+      throw new InjectionRegisterException(`It was expected that useClass would be a "class", but a "${typeof dependency.useClass}" was received`)
+    } else if (dependency.useFactory && typeof dependency.useFactory !== 'function') {
+      throw new InjectionRegisterException(`It was expected that useFactory would be a "function", but a "${typeof dependency.useClass}" was received`)
     }
 
     this.repository.register({

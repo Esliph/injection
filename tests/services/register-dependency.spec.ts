@@ -94,4 +94,13 @@ describe('Tests for registering Dependency', () => {
 
     expect(() => container.register(dependency as any)).toThrowError(InjectionRegisterException)
   })
+
+  test('An exception is expected to be thrown when useFactory does not receive a function', () => {
+    const dependency: DependencyRegister = {
+      token: 'TOKEN',
+      useFactory: true as any,
+    }
+
+    expect(() => container.register(dependency as any)).toThrowError(InjectionRegisterException)
+  })
 })
