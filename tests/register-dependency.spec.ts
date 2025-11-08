@@ -51,4 +51,38 @@ describe('Tests for registering Dependency', () => {
 
     expect(() => container.register(dependency as any)).toThrowError(InjectionRegisterException)
   })
+
+  test('An exception is expected to be thrown if both useClass and useValue are specified simultaneously', () => {
+    class TestClass { }
+
+    const dependency = {
+      token: 'TOKEN',
+      useClass: TestClass,
+      useValue: 10,
+    }
+
+    expect(() => container.register(dependency as any)).toThrowError(InjectionRegisterException)
+  })
+
+  test('An exception is expected to be thrown if both useClass and useFactory are specified simultaneously', () => {
+    class TestClass { }
+
+    const dependency = {
+      token: 'TOKEN',
+      useClass: TestClass,
+      useFactory: () => { },
+    }
+
+    expect(() => container.register(dependency as any)).toThrowError(InjectionRegisterException)
+  })
+
+  test('An exception is expected to be thrown if both useClass and useFactory are specified simultaneously', () => {
+    const dependency = {
+      token: 'TOKEN',
+      useFactory: () => { },
+      useValue: 10,
+    }
+
+    expect(() => container.register(dependency as any)).toThrowError(InjectionRegisterException)
+  })
 })

@@ -21,6 +21,9 @@ export class DependencyContainer {
     if (!dependency.useClass && !dependency.useFactory && !dependency.useValue) {
       throw new InjectionRegisterException('You must provide a method option for creating the dependency: "useClass", "useFactory" or "useValue"')
     }
+    if ([dependency.useClass, dependency.useFactory, dependency.useValue].filter(useCreation => useCreation !== undefined && useCreation !== null).length > 1) {
+      throw new InjectionRegisterException('Please specify only one of the dependency creation options: "useClass", "useFactory", or "useValue"')
+    }
 
     this.repository.register({
       token: dependency.token,
