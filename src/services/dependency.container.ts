@@ -1,4 +1,4 @@
-import { DependencyCreation, DependencyToken } from '@common/types/types'
+import { DependencyCreation, DependencyToken } from '@common/types/dependency'
 import { Scope } from '@enums/scope'
 import { InjectionRegisterException } from '@exceptions/register.exception'
 import { DependencyRepository } from '@repositories/dependency.repository'

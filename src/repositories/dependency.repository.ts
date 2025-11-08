@@ -1,4 +1,4 @@
-import { Dependency, DependencyToken } from '@common/types/types'
+import { Dependency, DependencyToken } from '@common/types/dependency'
 
 export class DependencyRepository {
 

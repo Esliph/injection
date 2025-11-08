@@ -1,6 +1,6 @@
 import { DependencyRepository } from '@repositories/dependency.repository'
 import { beforeEach, describe, expect, test } from 'vitest'
-import { Dependency } from '../../src/common/types/types'
+import { Dependency } from '../../src/common/types/dependency'
 import { Scope } from '../../src/enums/scope'
 
 describe('Dependency Repository Tests', () => {
