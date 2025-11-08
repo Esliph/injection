@@ -36,71 +36,75 @@ describe('Tests for registering Dependency', () => {
     expect(repository.get(dependency.token)?.scope).toEqual(Scope.REQUEST)
   })
 
-  test('It is expected that an exception will be thrown when the Token is not provided', () => {
-    const dependency: DependencyRegister = {
-      useValue: 10
-    } as any
+  describe('Checking for required properties', () => {
+    test('It is expected that an exception will be thrown when the Token is not provided', () => {
+      const dependency: DependencyRegister = {
+        useValue: 10
+      } as any
 
-    expect(() => container.register(dependency as any)).toThrowError(InjectionRegisterException)
+      expect(() => container.register(dependency as any)).toThrowError(InjectionRegisterException)
+    })
+
+    test('It is expected that an exception will be thrown when the creation method is not specified', () => {
+      const dependency: DependencyRegister = {
+        token: 'TOKEN'
+      }
+
+      expect(() => container.register(dependency as any)).toThrowError(InjectionRegisterException)
+    })
   })
 
-  test('It is expected that an exception will be thrown when the creation method is not specified', () => {
-    const dependency: DependencyRegister = {
-      token: 'TOKEN'
-    }
+  describe('Checking dependency creation properties', () => {
+    test('An exception is expected to be thrown if both useClass and useValue are specified simultaneously', () => {
+      class TestClass { }
 
-    expect(() => container.register(dependency as any)).toThrowError(InjectionRegisterException)
-  })
+      const dependency: DependencyRegister = {
+        token: 'TOKEN',
+        useClass: TestClass,
+        useValue: 10,
+      }
 
-  test('An exception is expected to be thrown if both useClass and useValue are specified simultaneously', () => {
-    class TestClass { }
+      expect(() => container.register(dependency as any)).toThrowError(InjectionRegisterException)
+    })
 
-    const dependency: DependencyRegister = {
-      token: 'TOKEN',
-      useClass: TestClass,
-      useValue: 10,
-    }
+    test('An exception is expected to be thrown if both useClass and useFactory are specified simultaneously', () => {
+      class TestClass { }
 
-    expect(() => container.register(dependency as any)).toThrowError(InjectionRegisterException)
-  })
+      const dependency: DependencyRegister = {
+        token: 'TOKEN',
+        useClass: TestClass,
+        useFactory: () => { },
+      }
 
-  test('An exception is expected to be thrown if both useClass and useFactory are specified simultaneously', () => {
-    class TestClass { }
+      expect(() => container.register(dependency as any)).toThrowError(InjectionRegisterException)
+    })
 
-    const dependency: DependencyRegister = {
-      token: 'TOKEN',
-      useClass: TestClass,
-      useFactory: () => { },
-    }
+    test('An exception is expected to be thrown if both useClass and useFactory are specified simultaneously', () => {
+      const dependency: DependencyRegister = {
+        token: 'TOKEN',
+        useFactory: () => { },
+        useValue: 10,
+      }
 
-    expect(() => container.register(dependency as any)).toThrowError(InjectionRegisterException)
-  })
+      expect(() => container.register(dependency as any)).toThrowError(InjectionRegisterException)
+    })
 
-  test('An exception is expected to be thrown if both useClass and useFactory are specified simultaneously', () => {
-    const dependency: DependencyRegister = {
-      token: 'TOKEN',
-      useFactory: () => { },
-      useValue: 10,
-    }
+    test('An exception is expected to be thrown when useClass does not receive a class', () => {
+      const dependency: DependencyRegister = {
+        token: 'TOKEN',
+        useClass: 10 as any,
+      }
 
-    expect(() => container.register(dependency as any)).toThrowError(InjectionRegisterException)
-  })
+      expect(() => container.register(dependency as any)).toThrowError(InjectionRegisterException)
+    })
 
-  test('An exception is expected to be thrown when useClass does not receive a class', () => {
-    const dependency: DependencyRegister = {
-      token: 'TOKEN',
-      useClass: 10 as any,
-    }
+    test('An exception is expected to be thrown when useFactory does not receive a function', () => {
+      const dependency: DependencyRegister = {
+        token: 'TOKEN',
+        useFactory: true as any,
+      }
 
-    expect(() => container.register(dependency as any)).toThrowError(InjectionRegisterException)
-  })
-
-  test('An exception is expected to be thrown when useFactory does not receive a function', () => {
-    const dependency: DependencyRegister = {
-      token: 'TOKEN',
-      useFactory: true as any,
-    }
-
-    expect(() => container.register(dependency as any)).toThrowError(InjectionRegisterException)
+      expect(() => container.register(dependency as any)).toThrowError(InjectionRegisterException)
+    })
   })
 })
