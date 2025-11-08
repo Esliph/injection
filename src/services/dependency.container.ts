@@ -15,12 +15,31 @@ export class DependencyContainer {
     protected repository = new DependencyRepository()
   ) { }
 
-  register(dependency: DependencyRegister) {
-    if (!dependency.token) {
+  register({ token, scope, useClass, useFactory, useValue }: DependencyRegister) {
+    this.validateTokenToRegister(token)
+    this.validateUseCreationsToRegister({ useClass, useFactory, useValue })
+
+    this.repository.register({
+      token,
+      scope: scope || Scope.REQUEST,
+      useClass,
+      useFactory,
+      useValue,
+    })
+  }
+
+  protected validateTokenToRegister(token: DependencyToken) {
+    if (!token) {
       throw new InjectionRegisterException('A Token must be provided for the dependency')
     }
 
-    const propsCreational = [dependency.useClass, dependency.useFactory, dependency.useValue].filter(useCreation => useCreation !== undefined && useCreation !== null)
+    if (this.repository.get(token) !== null) {
+      throw new InjectionRegisterException(`Dependency "${token}" already registered`)
+    }
+  }
+
+  protected validateUseCreationsToRegister({ useClass, useFactory, useValue }: DependencyCreation) {
+    const propsCreational = [useClass, useFactory, useValue].filter(useCreation => useCreation !== undefined && useCreation !== null)
 
     if (!propsCreational.length) {
       throw new InjectionRegisterException('You must provide a method option for creating the dependency: "useClass", "useFactory" or "useValue"')
@@ -29,22 +48,10 @@ export class DependencyContainer {
       throw new InjectionRegisterException('Please specify only one of the dependency creation options: "useClass", "useFactory", or "useValue"')
     }
 
-    if (dependency.useClass && !isClass(dependency.useClass)) {
-      throw new InjectionRegisterException(`It was expected that useClass would be a "class", but a "${typeof dependency.useClass}" was received`)
-    } else if (dependency.useFactory && typeof dependency.useFactory !== 'function') {
-      throw new InjectionRegisterException(`It was expected that useFactory would be a "function", but a "${typeof dependency.useClass}" was received`)
+    if (useClass && !isClass(useClass)) {
+      throw new InjectionRegisterException(`It was expected that useClass would be a "class", but a "${typeof useClass}" was received`)
+    } else if (useFactory && typeof useFactory !== 'function') {
+      throw new InjectionRegisterException(`It was expected that useFactory would be a "function", but a "${typeof useClass}" was received`)
     }
-
-    if (this.repository.get(dependency.token) !== null) {
-      throw new InjectionRegisterException(`Dependency "${dependency.token}" already registered`)
-    }
-
-    this.repository.register({
-      token: dependency.token,
-      scope: dependency.scope || Scope.REQUEST,
-      useClass: dependency.useClass,
-      useFactory: dependency.useFactory,
-      useValue: dependency.useValue,
-    })
   }
 }
