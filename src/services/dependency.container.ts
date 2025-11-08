@@ -35,6 +35,10 @@ export class DependencyContainer {
       throw new InjectionRegisterException(`It was expected that useFactory would be a "function", but a "${typeof dependency.useClass}" was received`)
     }
 
+    if (this.repository.get(dependency.token) !== null) {
+      throw new InjectionRegisterException(`Dependency "${dependency.token}" already registered`)
+    }
+
     this.repository.register({
       token: dependency.token,
       scope: dependency.scope || Scope.REQUEST,

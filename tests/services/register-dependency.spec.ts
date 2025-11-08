@@ -2,7 +2,7 @@ import { Scope } from '@enums/scope'
 import { InjectionRegisterException } from '@exceptions/register.exception'
 import { DependencyRepository } from '@repositories/dependency.repository'
 import { DependencyContainer, DependencyRegister } from '@services/dependency.container'
-import { beforeEach, describe, expect, test } from 'vitest'
+import { beforeEach, describe, expect, test, vi } from 'vitest'
 
 describe('Tests for registering Dependency', () => {
   let container: DependencyContainer
@@ -36,7 +36,7 @@ describe('Tests for registering Dependency', () => {
     expect(repository.get(dependency.token)?.scope).toEqual(Scope.REQUEST)
   })
 
-  describe('Checking for required properties', () => {
+  describe('Token check', () => {
     test('It is expected that an exception will be thrown when the Token is not provided', () => {
       const dependency: DependencyRegister = {
         useValue: 10
@@ -45,9 +45,37 @@ describe('Tests for registering Dependency', () => {
       expect(() => container.register(dependency as any)).toThrowError(InjectionRegisterException)
     })
 
-    test('It is expected that an exception will be thrown when the creation method is not specified', () => {
+    test('An exception is expected to be thrown if you attempt to register a dependency with a string token that has already been registered', () => {
+      vi.spyOn(repository, 'get').mockImplementation(token => {
+        return {
+          token,
+          scope: Scope.REQUEST,
+          useValue: 10
+        }
+      })
+
       const dependency: DependencyRegister = {
-        token: 'TOKEN'
+        token: 'TOKEN',
+        useValue: 10
+      }
+
+      expect(() => container.register(dependency as any)).toThrowError(InjectionRegisterException)
+    })
+
+    test('An exception is expected to be thrown if you try to register a dependency with a token in a class that has already been registered', () => {
+      class Test { }
+
+      vi.spyOn(repository, 'get').mockImplementation(token => {
+        return {
+          token,
+          scope: Scope.REQUEST,
+          useValue: 10
+        }
+      })
+
+      const dependency: DependencyRegister = {
+        token: Test,
+        useValue: 10
       }
 
       expect(() => container.register(dependency as any)).toThrowError(InjectionRegisterException)
@@ -55,6 +83,14 @@ describe('Tests for registering Dependency', () => {
   })
 
   describe('Checking dependency creation properties', () => {
+    test('It is expected that an exception will be thrown when the creation method is not specified', () => {
+      const dependency: DependencyRegister = {
+        token: 'TOKEN'
+      }
+
+      expect(() => container.register(dependency as any)).toThrowError(InjectionRegisterException)
+    })
+
     test('An exception is expected to be thrown if both useClass and useValue are specified simultaneously', () => {
       class TestClass { }
 
