@@ -19,10 +19,13 @@ export class DependencyContainer {
     if (!dependency.token) {
       throw new InjectionRegisterException('A Token must be provided for the dependency')
     }
-    if (!dependency.useClass && !dependency.useFactory && !dependency.useValue) {
+
+    const propsCreational = [dependency.useClass, dependency.useFactory, dependency.useValue].filter(useCreation => useCreation !== undefined && useCreation !== null)
+
+    if (!propsCreational.length) {
       throw new InjectionRegisterException('You must provide a method option for creating the dependency: "useClass", "useFactory" or "useValue"')
     }
-    if ([dependency.useClass, dependency.useFactory, dependency.useValue].filter(useCreation => useCreation !== undefined && useCreation !== null).length > 1) {
+    if (propsCreational.length > 1) {
       throw new InjectionRegisterException('Please specify only one of the dependency creation options: "useClass", "useFactory", or "useValue"')
     }
 
