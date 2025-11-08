@@ -7,7 +7,7 @@
   "scripts": {
     "start": "node dist/index.js",
     "test": "vitest",
-    "build": "tsc",
+    "build": "tsc && tsc-alias",
     "prepublishOnly": "rm -rf dist && npm run build -- -p tsconfig.build.json"
   },
   "exports": {
