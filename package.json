@@ -32,17 +32,23 @@
   ],
   "author": "Dan Ruan",
   "license": "MIT",
+  "dependencies": {
+    "@esliph/decorator": "^1.0.4"
+  },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
     "@types/node": "^24.10.0",
     "@typescript-eslint/eslint-plugin": "^8.46.3",
     "@typescript-eslint/parser": "^8.46.3",
+    "@vitest/coverage-v8": "^4.0.8",
     "eslint": "^9.39.1",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.4",
     "prettier": "^3.6.2",
+    "tsc-alias": "^1.8.16",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.46.3",
+    "vite-tsconfig-paths": "^5.1.4",
     "vitest": "^4.0.7"
   }
 }
