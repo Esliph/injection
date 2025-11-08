@@ -4,6 +4,11 @@ import { describe, expect, test } from 'vitest'
 describe('Tests to validate useful functions', () => {
   test('isClass is expected to return false for any data type that is not a class', () => {
     enum Test { Value }
+    const func = function () { }
+
+    Object.defineProperty(func, 'prototype', {
+      writable: true
+    })
 
     const dataset: any[] = [
       10,
@@ -15,6 +20,7 @@ describe('Tests to validate useful functions', () => {
       [],
       function () { },
       () => { },
+      func,
     ]
 
     dataset.forEach(value => expect(isClass(value)).toBe(false))
