@@ -5,10 +5,9 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "start": "node dist/index.js",
     "test": "vitest",
-    "build": "tsc && tsc-alias",
-    "prepublishOnly": "rm -rf dist && npm run build -- -p tsconfig.build.json"
+    "build": "rm -rf dist && tsc && tsc-alias",
+    "prepublishOnly": "npm run build -- -p tsconfig.build.json"
   },
   "exports": {
     ".": {
@@ -33,7 +32,8 @@
   "author": "Dan Ruan",
   "license": "MIT",
   "dependencies": {
-    "@esliph/decorator": "^1.0.4"
+    "@esliph/decorator": "^1.0.4",
+    "reflect-metadata": "^0.2.2"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
