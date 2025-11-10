@@ -32,7 +32,7 @@
   "author": "Dan Ruan",
   "license": "MIT",
   "dependencies": {
-    "@esliph/decorator": "^1.0.4",
+    "@esliph/decorator": "^1.0.6",
     "reflect-metadata": "^0.2.2"
   },
   "devDependencies": {
