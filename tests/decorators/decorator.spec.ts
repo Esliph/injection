@@ -3,18 +3,20 @@ import { describe, expect, test } from 'vitest'
 
 describe('Decorators Test', () => {
   test('It is expected that tokens will be stored as strings in the parameters and properties', () => {
-    class TestStringToken {
+    class TestWithStringToken {
 
-      @Inject('TOKEN_A')
-      private valueTokenA: any
+      @Inject('PROP_TOKEN_A')
+      private propTokenA: any
 
-      constructor(@Inject('TOKEN_B') valueTokenB: any, @Inject('TOKEN_C') valueTokenC: any) { }
+      private propValueB: any
+
+      constructor(@Inject('PARAM_TOKEN_A') paramTokenA: any, @Inject('PARAM_TOKEN_B') paramTokenB: any) { }
     }
 
-    const { properties, constructorParams } = getInjectTokens(TestStringToken)
+    const { properties, constructorParams } = getInjectTokens(TestWithStringToken)
 
-    expect(properties).toEqual({ valueTokenA: 'TOKEN_A' })
-    expect(constructorParams).toEqual(['TOKEN_B', 'TOKEN_C'])
+    expect(properties).toEqual({ propTokenA: 'PROP_TOKEN_A' })
+    expect(constructorParams).toEqual(['PARAM_TOKEN_A', 'PARAM_TOKEN_B'])
   })
 
   test('It is expected that tokens will be registered in classes within the parameters and properties', () => {
@@ -22,17 +24,17 @@ describe('Decorators Test', () => {
     class TestServiceB { }
     class TestServiceC { }
 
-    class TestClassToken {
+    class TestWithClassToken {
 
       @Inject(TestServiceA)
-      private valueTokenA: any
+      private propTokenA: any
 
-      constructor(@Inject(TestServiceB) valueTokenB: any, @Inject(TestServiceC) valueTokenC: any) { }
+      constructor(@Inject(TestServiceB) paramTokenB: any, @Inject(TestServiceC) paramTokenC: any) { }
     }
 
-    const { properties, constructorParams } = getInjectTokens(TestClassToken)
+    const { properties, constructorParams } = getInjectTokens(TestWithClassToken)
 
-    expect(properties).toEqual({ valueTokenA: TestServiceA })
+    expect(properties).toEqual({ propTokenA: TestServiceA })
     expect(constructorParams).toEqual([TestServiceB, TestServiceC])
   })
 })
