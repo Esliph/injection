@@ -48,4 +48,16 @@ describe('Decorators Test', () => {
 
     expect(constructorParams).toEqual(['PARAM_TOKEN_A', undefined, 'PARAM_TOKEN_C'])
   })
+
+  test('Expected to return an empty token array when no tokens are defined in the constructor\'s properties and parameters', () => {
+    class TestWithoutToken {
+
+      constructor(paramA: any, paramB: any, paramC: any) { }
+    }
+
+    const { constructorParams, properties } = getInjectTokens(TestWithoutToken)
+
+    expect(properties).toEqual({})
+    expect(constructorParams).toEqual([])
+  })
 })
