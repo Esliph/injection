@@ -37,4 +37,15 @@ describe('Decorators Test', () => {
     expect(properties).toEqual({ propTokenA: TestServiceA })
     expect(constructorParams).toEqual([TestServiceB, TestServiceC])
   })
+
+  test('Expected to return an undefined element in the parameter array when no token is specified', () => {
+    class TestTokenUndefined {
+
+      constructor(@Inject('PARAM_TOKEN_A') paramTokenA: any, paramB: any, @Inject('PARAM_TOKEN_C') paramTokenC: any, paramD: any) { }
+    }
+
+    const { constructorParams } = getInjectTokens(TestTokenUndefined)
+
+    expect(constructorParams).toEqual(['PARAM_TOKEN_A', undefined, 'PARAM_TOKEN_C'])
+  })
 })
