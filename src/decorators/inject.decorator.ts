@@ -22,7 +22,7 @@ export const Inject = (token: DependencyToken) => Decorator.Generic({
   },
 })
 
-export function getInjectTokens(target: Object) {
+export function getInjectTokens(target: Object): { constructorParams: DependencyToken[], properties: DependencyToken[] } {
   return {
     constructorParams: Reflect.getMetadata(INJECT_PARAM_KEY, target) || [],
     properties: Reflect.getMetadata(INJECT_CONSTRUCTOR_PROPERTIES_KEY, (target as any).prototype) || {},

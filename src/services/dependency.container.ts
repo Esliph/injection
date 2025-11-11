@@ -1,8 +1,10 @@
 import { DependencyCreation, DependencyToken } from '@common/types/dependency'
+import { getInjectTokens } from '@decorators/inject.decorator'
 import { Scope } from '@enums/scope'
 import { InjectionRegisterException } from '@exceptions/register.exception'
+import { ResolveException } from '@exceptions/resolve.exception'
 import { DependencyRepository } from '@repositories/dependency.repository'
-import { isClass } from '@utils/types'
+import { ClassConstructor, isClass } from '@utils/types'
 
 export type DependencyRegister = DependencyCreation & {
   token: DependencyToken
@@ -28,6 +30,46 @@ export class DependencyContainer {
         useValue,
       })
     }
+  }
+
+  resolve<TConstructor extends ClassConstructor>(context: TConstructor): InstanceType<TConstructor> {
+    const { constructorParams, properties } = getInjectTokens(context)
+
+    const params = []
+
+    for (let i = 0; i < constructorParams.length; i++) {
+      params[i] = this.resolveToken(constructorParams[i])
+    }
+
+    const instance = new context(...params)
+
+    for (const prop in properties) {
+      instance[prop] = this.resolveToken(properties[prop])
+    }
+
+    return instance
+  }
+
+  protected resolveToken(token: DependencyToken) {
+    if (token === undefined) {
+      return null
+    }
+
+    const dependency = this.repository.get(token)
+
+    if (!dependency) {
+      throw new ResolveException(`Dependency "${token}" not registered in the container`)
+    }
+
+    if (dependency.useValue) {
+      return dependency.useValue
+    } else if (dependency.useFactory) {
+      return dependency.useFactory()
+    } else if (dependency.useClass) {
+      return this.resolve(dependency.useClass)
+    }
+
+    return null
   }
 
   protected validateTokenToRegister(token: DependencyToken) {
