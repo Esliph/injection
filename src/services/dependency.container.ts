@@ -4,6 +4,7 @@ import { Scope } from '@enums/scope'
 import { InjectionRegisterException } from '@exceptions/register.exception'
 import { ResolveException } from '@exceptions/resolve.exception'
 import { DependencyRepository } from '@repositories/dependency.repository'
+import { getTokenName } from '@utils/token'
 import { ClassConstructor, isClass } from '@utils/types'
 
 export type DependencyRegister = DependencyCreation & {
@@ -58,7 +59,7 @@ export class DependencyContainer {
     const dependency = this.repository.get(token)
 
     if (!dependency) {
-      throw new ResolveException(`Dependency "${token}" not registered in the container`)
+      throw new ResolveException(`Dependency "${getTokenName(token)}" not registered in the container`)
     }
 
     if (dependency.useValue) {
@@ -68,8 +69,6 @@ export class DependencyContainer {
     } else if (dependency.useClass) {
       return this.resolve(dependency.useClass)
     }
-
-    return null
   }
 
   protected validateTokenToRegister(token: DependencyToken) {
@@ -78,7 +77,7 @@ export class DependencyContainer {
     }
 
     if (this.repository.get(token) !== null) {
-      throw new InjectionRegisterException(`Dependency "${token}" already registered`)
+      throw new InjectionRegisterException(`Dependency "${getTokenName(token)}" already registered`)
     }
   }
 
