@@ -106,4 +106,83 @@ describe('Resolve dependency', () => {
       expect(instance.paramB).toBe('value for param B')
     })
   })
+
+  describe('Tests to resolve instances with dependency registration using useFactory', () => {
+    test('An instance is expected to be created by injecting a dependency via a constructor parameter using a value', () => {
+      class TestUseFactoryWithStringTokenParam {
+        constructor(
+          @Inject('TOKEN_PARAM') public param: number
+        ) { }
+      }
+
+      container.register([
+        {
+          token: 'TOKEN_PARAM',
+          useFactory: () => 10
+        }
+      ])
+
+      const instance = container.resolve(TestUseFactoryWithStringTokenParam)
+
+      expect(instance).toBeInstanceOf(TestUseFactoryWithStringTokenParam)
+      expect(instance.param).toBe(10)
+    })
+
+    test('An instance is expected to be created by injecting a dependency via a property using a value', () => {
+      class TestUseFactoryWithStringTokenProp {
+        @Inject('TOKEN_PROP') prop: number
+      }
+
+      container.register([
+        {
+          token: 'TOKEN_PROP',
+          useFactory: () => 10
+        }
+      ])
+
+      const instance = container.resolve(TestUseFactoryWithStringTokenProp)
+
+      expect(instance).toBeInstanceOf(TestUseFactoryWithStringTokenProp)
+      expect(instance.prop).toBe(10)
+    })
+
+    test('It is expected that an instance will be created by injecting multiple dependencies into parameters and properties', () => {
+      class TestUseFactoryWithStringTokenProp {
+        @Inject('TOKEN_PROP_A') propA: number
+        @Inject('TOKEN_PROP_B') propB: 'string'
+
+        constructor(
+          @Inject('TOKEN_PARAM_A') public paramA: number,
+          @Inject('TOKEN_PARAM_B') public paramB: string
+        ) { }
+      }
+
+      container.register([
+        {
+          token: 'TOKEN_PROP_A',
+          useFactory: () => 10
+        },
+        {
+          token: 'TOKEN_PROP_B',
+          useFactory: () => 'value for prop B'
+        },
+        {
+          token: 'TOKEN_PARAM_A',
+          useFactory: () => 11
+        },
+        {
+          token: 'TOKEN_PARAM_B',
+          useFactory: () => 'value for param B'
+        }
+      ])
+
+      const instance = container.resolve(TestUseFactoryWithStringTokenProp)
+
+      expect(instance).toBeInstanceOf(TestUseFactoryWithStringTokenProp)
+      expect(instance.propA).toBe(10)
+      expect(instance.propB).toBe('value for prop B')
+      expect(instance.paramA).toBe(11)
+      expect(instance.paramB).toBe('value for param B')
+    })
+  })
 })
