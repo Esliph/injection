@@ -66,11 +66,13 @@ export class DependencyContainer {
 
     if (dependency.useValue) {
       return dependency.useValue
-    } else if (dependency.useFactory) {
-      return dependency.useFactory()
-    } else if (dependency.useClass) {
-      return this.resolve(dependency.useClass)
     }
+
+    if (dependency.useFactory) {
+      return dependency.useFactory()
+    }
+
+    return this.resolve(dependency.useClass!)
   }
 
   protected validateTokenToRegister(token: DependencyToken) {

@@ -209,6 +209,30 @@ describe('Resolve dependency', () => {
       expect(instance.param).toBeInstanceOf(Service)
     })
 
+    test('An instance is expected to be created by injecting a dependency via a constructor parameter using a value and a non-token pattern', () => {
+      class Service { }
+
+      class TestUseFactoryWithStringTokenParam {
+        constructor(
+          public param: any,
+          @Inject('TOKEN_PARAM') public service: Service,
+        ) { }
+      }
+
+      container.register([
+        {
+          token: 'TOKEN_PARAM',
+          useClass: Service
+        }
+      ])
+
+      const instance = container.resolve(TestUseFactoryWithStringTokenParam)
+
+      expect(instance).toBeInstanceOf(TestUseFactoryWithStringTokenParam)
+      expect(instance.service).toBeInstanceOf(Service)
+      expect(instance.param).toBeNull()
+    })
+
     test('An instance is expected to be created by injecting a dependency via a property using a value', () => {
       class Service { }
 
