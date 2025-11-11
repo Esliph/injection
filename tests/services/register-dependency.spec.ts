@@ -20,7 +20,7 @@ describe('Tests for registering Dependency', () => {
       useValue: 10
     }
 
-    container.register(dependency)
+    container.register([dependency])
 
     expect(repository.get(dependency.token)).toEqual(dependency)
   })
@@ -31,7 +31,7 @@ describe('Tests for registering Dependency', () => {
       useValue: 10
     }
 
-    container.register(dependency)
+    container.register([dependency])
 
     expect(repository.get(dependency.token)?.scope).toEqual(Scope.REQUEST)
   })
@@ -42,7 +42,7 @@ describe('Tests for registering Dependency', () => {
         useValue: 10
       } as any
 
-      expect(() => container.register(dependency as any)).toThrowError(InjectionRegisterException)
+      expect(() => container.register([dependency] as any)).toThrowError(InjectionRegisterException)
     })
 
     test('An exception is expected to be thrown if you attempt to register a dependency with a string token that has already been registered', () => {
@@ -59,7 +59,7 @@ describe('Tests for registering Dependency', () => {
         useValue: 10
       }
 
-      expect(() => container.register(dependency as any)).toThrowError(InjectionRegisterException)
+      expect(() => container.register([dependency] as any)).toThrowError(InjectionRegisterException)
     })
 
     test('An exception is expected to be thrown if you try to register a dependency with a token in a class that has already been registered', () => {
@@ -78,7 +78,7 @@ describe('Tests for registering Dependency', () => {
         useValue: 10
       }
 
-      expect(() => container.register(dependency as any)).toThrowError(InjectionRegisterException)
+      expect(() => container.register([dependency] as any)).toThrowError(InjectionRegisterException)
     })
   })
 
@@ -88,7 +88,7 @@ describe('Tests for registering Dependency', () => {
         token: 'TOKEN'
       }
 
-      expect(() => container.register(dependency as any)).toThrowError(InjectionRegisterException)
+      expect(() => container.register([dependency] as any)).toThrowError(InjectionRegisterException)
     })
 
     test('An exception is expected to be thrown if both useClass and useValue are specified simultaneously', () => {
@@ -100,7 +100,7 @@ describe('Tests for registering Dependency', () => {
         useValue: 10,
       }
 
-      expect(() => container.register(dependency as any)).toThrowError(InjectionRegisterException)
+      expect(() => container.register([dependency] as any)).toThrowError(InjectionRegisterException)
     })
 
     test('An exception is expected to be thrown if both useClass and useFactory are specified simultaneously', () => {
@@ -112,7 +112,7 @@ describe('Tests for registering Dependency', () => {
         useFactory: () => { },
       }
 
-      expect(() => container.register(dependency as any)).toThrowError(InjectionRegisterException)
+      expect(() => container.register([dependency] as any)).toThrowError(InjectionRegisterException)
     })
 
     test('An exception is expected to be thrown if both useClass and useFactory are specified simultaneously', () => {
@@ -122,7 +122,7 @@ describe('Tests for registering Dependency', () => {
         useValue: 10,
       }
 
-      expect(() => container.register(dependency as any)).toThrowError(InjectionRegisterException)
+      expect(() => container.register([dependency] as any)).toThrowError(InjectionRegisterException)
     })
 
     test('An exception is expected to be thrown when useClass does not receive a class', () => {
@@ -131,7 +131,7 @@ describe('Tests for registering Dependency', () => {
         useClass: 10 as any,
       }
 
-      expect(() => container.register(dependency as any)).toThrowError(InjectionRegisterException)
+      expect(() => container.register([dependency] as any)).toThrowError(InjectionRegisterException)
     })
 
     test('An exception is expected to be thrown when useFactory does not receive a function', () => {
@@ -140,7 +140,7 @@ describe('Tests for registering Dependency', () => {
         useFactory: true as any,
       }
 
-      expect(() => container.register(dependency as any)).toThrowError(InjectionRegisterException)
+      expect(() => container.register([dependency] as any)).toThrowError(InjectionRegisterException)
     })
   })
 })

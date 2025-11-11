@@ -15,17 +15,19 @@ export class DependencyContainer {
     protected repository = new DependencyRepository()
   ) { }
 
-  register({ token, scope, useClass, useFactory, useValue }: DependencyRegister) {
-    this.validateTokenToRegister(token)
-    this.validateUseCreationsToRegister({ useClass, useFactory, useValue })
+  register(dependencies: DependencyRegister[]) {
+    for (const { token, scope, useClass, useFactory, useValue } of dependencies) {
+      this.validateTokenToRegister(token)
+      this.validateUseCreationsToRegister({ useClass, useFactory, useValue })
 
-    this.repository.register({
-      token,
-      scope: scope || Scope.REQUEST,
-      useClass,
-      useFactory,
-      useValue,
-    })
+      this.repository.register({
+        token,
+        scope: scope || Scope.REQUEST,
+        useClass,
+        useFactory,
+        useValue,
+      })
+    }
   }
 
   protected validateTokenToRegister(token: DependencyToken) {
