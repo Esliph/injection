@@ -22,7 +22,7 @@ describe('Tests for registering Dependency', () => {
 
     container.register([dependency])
 
-    expect(repository.get(dependency.token)).toEqual(dependency)
+    expect(container.getDependency(dependency.token)).toEqual(dependency)
   })
 
   test('Expected to register the dependency with the applied default values', () => {
@@ -33,7 +33,7 @@ describe('Tests for registering Dependency', () => {
 
     container.register([dependency])
 
-    expect(repository.get(dependency.token)?.scope).toEqual(Scope.REQUEST)
+    expect(container.getDependency(dependency.token)?.scope).toEqual(Scope.REQUEST)
   })
 
   test('It is expected that a dependency will be registered simply by specifying the class', () => {
@@ -41,7 +41,7 @@ describe('Tests for registering Dependency', () => {
 
     container.register([Test])
 
-    expect(repository.get(Test)?.scope).toEqual(Scope.REQUEST)
+    expect(container.getDependency(Test)?.scope).toEqual(Scope.REQUEST)
   })
 
   describe('Token check', () => {

@@ -101,4 +101,8 @@ export class DependencyContainer {
       throw new InjectionRegisterException(`It was expected that useFactory would be a "function", but a "${typeof useClass}" was received`)
     }
   }
+
+  getDependency(token: DependencyToken) {
+    return this.repository.get(token)
+  }
 }
