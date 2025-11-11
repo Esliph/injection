@@ -185,4 +185,115 @@ describe('Resolve dependency', () => {
       expect(instance.paramB).toBe('value for param B')
     })
   })
+
+  describe('Tests to resolve instances with dependency registration using useClass', () => {
+    test('An instance is expected to be created by injecting a dependency via a constructor parameter using a value', () => {
+      class Service { }
+
+      class TestUseFactoryWithStringTokenParam {
+        constructor(
+          @Inject('TOKEN_PARAM') public param: Service
+        ) { }
+      }
+
+      container.register([
+        {
+          token: 'TOKEN_PARAM',
+          useClass: Service
+        }
+      ])
+
+      const instance = container.resolve(TestUseFactoryWithStringTokenParam)
+
+      expect(instance).toBeInstanceOf(TestUseFactoryWithStringTokenParam)
+      expect(instance.param).toBeInstanceOf(Service)
+    })
+
+    test('An instance is expected to be created by injecting a dependency via a property using a value', () => {
+      class Service { }
+
+      class TestUseFactoryWithStringTokenProp {
+        @Inject('TOKEN_PROP') prop: Service
+      }
+
+      container.register([
+        {
+          token: 'TOKEN_PROP',
+          useClass: Service
+        }
+      ])
+
+      const instance = container.resolve(TestUseFactoryWithStringTokenProp)
+
+      expect(instance).toBeInstanceOf(TestUseFactoryWithStringTokenProp)
+      expect(instance.prop).toBeInstanceOf(Service)
+    })
+
+    test('It is expected that an instance will be created by injecting multiple dependencies into parameters and properties', () => {
+      class ServiceA { }
+      class ServiceB { }
+
+      class TestUseFactoryWithStringTokenProp {
+        @Inject('TOKEN_PROP_A') propA: ServiceA
+        @Inject('TOKEN_PROP_B') propB: ServiceB
+
+        constructor(
+          @Inject('TOKEN_PARAM_A') public paramA: ServiceA,
+          @Inject('TOKEN_PARAM_B') public paramB: ServiceB
+        ) { }
+      }
+
+      container.register([
+        {
+          token: 'TOKEN_PROP_A',
+          useClass: ServiceA
+        },
+        {
+          token: 'TOKEN_PROP_B',
+          useClass: ServiceB
+        },
+        {
+          token: 'TOKEN_PARAM_A',
+          useClass: ServiceA
+        },
+        {
+          token: 'TOKEN_PARAM_B',
+          useClass: ServiceB
+        }
+      ])
+
+      const instance = container.resolve(TestUseFactoryWithStringTokenProp)
+
+      expect(instance).toBeInstanceOf(TestUseFactoryWithStringTokenProp)
+      expect(instance.propA).toBeInstanceOf(ServiceA)
+      expect(instance.propB).toBeInstanceOf(ServiceB)
+      expect(instance.paramA).toBeInstanceOf(ServiceA)
+      expect(instance.paramB).toBeInstanceOf(ServiceB)
+    })
+
+    test('Expect to create an instance using dependency alignment', () => {
+      class ServiceA { }
+
+      class ServiceB {
+        constructor(@Inject(ServiceA) public serviceA: ServiceA) { }
+      }
+
+      class TestUseFactoryWithStringTokenProp {
+        constructor(
+          @Inject(ServiceB) public service: ServiceB
+        ) { }
+      }
+
+      container.register([
+        ServiceA,
+        ServiceB,
+      ])
+
+      const instance = container.resolve(TestUseFactoryWithStringTokenProp)
+
+      expect(instance).toBeInstanceOf(TestUseFactoryWithStringTokenProp)
+      expect(instance.service).toBeInstanceOf(ServiceB)
+      expect(instance.service.serviceA).toBeInstanceOf(ServiceA)
+    })
+  })
 })
