@@ -7,10 +7,10 @@ import { DependencyRepository } from '@repositories/dependency.repository'
 import { getTokenName } from '@utils/token'
 import { ClassConstructor, isClass } from '@utils/types'
 
-export type DependencyRegister = DependencyCreation & {
+export type DependencyRegister = (DependencyCreation & {
   token: DependencyToken
   scope?: Scope
-}
+}) | ClassConstructor
 
 export class DependencyContainer {
 
@@ -19,7 +19,9 @@ export class DependencyContainer {
   ) { }
 
   register(dependencies: DependencyRegister[]) {
-    for (const { token, scope, useClass, useFactory, useValue } of dependencies) {
+    for (const dependency of dependencies) {
+      const { token, scope, useClass, useFactory, useValue } = typeof dependency == 'object' ? dependency : { token: dependency, useClass: dependency }
+
       this.validateTokenToRegister(token)
       this.validateUseCreationsToRegister({ useClass, useFactory, useValue })
 

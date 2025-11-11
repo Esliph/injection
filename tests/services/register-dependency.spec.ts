@@ -36,6 +36,14 @@ describe('Tests for registering Dependency', () => {
     expect(repository.get(dependency.token)?.scope).toEqual(Scope.REQUEST)
   })
 
+  test('It is expected that a dependency will be registered simply by specifying the class', () => {
+    class Test { }
+
+    container.register([Test])
+
+    expect(repository.get(Test)?.scope).toEqual(Scope.REQUEST)
+  })
+
   describe('Token check', () => {
     test('It is expected that an exception will be thrown when the Token is not provided', () => {
       const dependency: DependencyRegister = {
