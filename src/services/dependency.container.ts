@@ -5,7 +5,7 @@ import { InjectionErrorCode } from '@exceptions/code-errors'
 import { InjectionRegisterException } from '@exceptions/register.exception'
 import { ResolveException } from '@exceptions/resolve.exception'
 import { DependencyRepository } from '@repositories/dependency.repository'
-import { getTokenName } from '@utils/token'
+import { assertValidToken, getTokenName } from '@utils/token'
 import { ClassConstructor, isClass } from '@utils/types'
 
 export type DependencyRegister = (DependencyCreation & {
@@ -25,7 +25,7 @@ export class DependencyContainer {
     for (const dependency of dependencies) {
       const { token, scope, useClass, useFactory, useValue } = typeof dependency == 'object' ? dependency : { token: dependency, useClass: dependency }
 
-      this.validateTokenToRegister(token)
+      assertValidToken(token)
       this.validateUseCreationsToRegister({ useClass, useFactory, useValue })
 
       this.repository.register({
@@ -39,6 +39,8 @@ export class DependencyContainer {
   }
 
   resolve<TToken = any>(token: DependencyToken): TToken {
+    assertValidToken(token)
+
     if (this.repository.has(token)) {
       return this.resolveToken(token)
     }
@@ -109,22 +111,6 @@ export class DependencyContainer {
     }
 
     return tokenResolved as T
-  }
-
-  protected validateTokenToRegister(token: DependencyToken) {
-    if (!token) {
-      throw new InjectionRegisterException(
-        InjectionErrorCode.REGISTER_TOKEN_MISSING,
-        'A Token must be provided for the dependency'
-      )
-    }
-
-    if (this.repository.get(token) !== null) {
-      throw new InjectionRegisterException(
-        InjectionErrorCode.REGISTER_TOKEN_ALREADY_REGISTERED,
-        `Dependency "${getTokenName(token)}" already registered`
-      )
-    }
   }
 
   protected validateUseCreationsToRegister({ useClass, useFactory, useValue }: DependencyCreation) {

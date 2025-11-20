@@ -1,6 +1,7 @@
 import { Scope } from '@enums/scope'
 import { InjectionErrorCode } from '@exceptions/code-errors'
 import { InjectionRegisterException } from '@exceptions/register.exception'
+import { InvalidTokenInjectionException } from '@exceptions/token.exception'
 import { DependencyRepository } from '@repositories/dependency.repository'
 import { DependencyContainer, DependencyRegister } from '@services/dependency.container'
 import { beforeEach, describe, expect, test, vi } from 'vitest'
@@ -55,8 +56,8 @@ describe('Tests for registering Dependency', () => {
       try {
         container.register([dependency] as any)
       } catch (error: any) {
-        expect(error).toBeInstanceOf(InjectionRegisterException)
-        expect(error.code).toBe(InjectionErrorCode.REGISTER_TOKEN_MISSING)
+        expect(error).toBeInstanceOf(InvalidTokenInjectionException)
+        expect(error.code).toBe(InjectionErrorCode.TOKEN_INVALID)
       }
     })
 
