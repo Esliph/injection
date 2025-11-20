@@ -1,9 +1,9 @@
 import { isClass } from '@utils/types'
 import { describe, expect, test } from 'vitest'
 
-describe('Tests to validate useful functions', () => {
+describe('Tests to validate useful typing functions', () => {
   test('isClass is expected to return false for any data type that is not a class', () => {
-    enum Test { Value }
+    enum TestEnum { Value }
     const func = function () { }
 
     Object.defineProperty(func, 'prototype', {
@@ -14,7 +14,7 @@ describe('Tests to validate useful functions', () => {
       10,
       'abc',
       true,
-      Test.Value,
+      TestEnum.Value,
       new Date(),
       {},
       [],
