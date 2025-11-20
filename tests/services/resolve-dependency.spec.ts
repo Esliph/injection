@@ -1,4 +1,5 @@
 import { Inject } from '@decorators/inject.decorator'
+import { Scope } from '@enums/scope'
 import { ResolveException } from '@exceptions/resolve.exception'
 import { DependencyContainer } from '@services/dependency.container'
 import { beforeEach, describe, expect, test } from 'vitest'
@@ -26,6 +27,10 @@ describe('Resolve dependency', () => {
     }
 
     expect(() => container.resolve(TestWithoutToken)).toThrowError(ResolveException)
+  })
+
+  test('An exception is expected to be thrown when attempting to resolve a token that is neither mapped nor a class', () => {
+    expect(() => container.resolve('TOKEN_NOT_REGISTERED')).toThrowError(ResolveException)
   })
 
   describe('Tests to resolve instances with dependency registration using useValue', () => {
@@ -318,6 +323,31 @@ describe('Resolve dependency', () => {
       expect(instance).toBeInstanceOf(TestUseFactoryWithStringTokenProp)
       expect(instance.service).toBeInstanceOf(ServiceB)
       expect(instance.service.serviceA).toBeInstanceOf(ServiceA)
+    })
+  })
+
+  describe('Tests to resolve global scope dependencies', () => {
+    test('An exception is expected to be thrown if the token mapped in the class is not registered in the container', () => {
+      class Service {
+        static countInstance = 0
+
+        constructor() {
+          Service.countInstance++
+        }
+      }
+
+      container.register([
+        {
+          token: Service,
+          useClass: Service,
+          scope: Scope.SINGLETON
+        }
+      ])
+
+      container.resolve(Service)
+      container.resolve(Service)
+
+      expect(Service.countInstance).toBe(1)
     })
   })
 })
