@@ -12,10 +12,25 @@ describe('Resolve dependency', () => {
     container = new DependencyContainer()
   })
 
-  test('Expected to create an instance that has no tokens', () => {
+  test('It is expected that a token-free instance will be created from the class', () => {
     class TestWithoutToken { }
 
     const instance = container.resolve(TestWithoutToken)
+
+    expect(instance).toBeInstanceOf(TestWithoutToken)
+  })
+
+  test('An instance is expected to be created from a String Token', () => {
+    class TestWithoutToken { }
+
+    container.register([
+      {
+        token: 'TOKEN',
+        useClass: TestWithoutToken
+      }
+    ])
+
+    const instance = container.resolve('TOKEN')
 
     expect(instance).toBeInstanceOf(TestWithoutToken)
   })
