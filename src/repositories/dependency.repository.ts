@@ -11,4 +11,8 @@ export class DependencyRepository {
   get(token: DependencyToken) {
     return this.dependencies.get(token) || null
   }
+
+  has(token: DependencyToken) {
+    return this.dependencies.has(token)
+  }
 }

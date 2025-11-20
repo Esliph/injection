@@ -19,6 +19,7 @@ describe('Dependency Repository Tests', () => {
 
     repository.register(dependency)
 
+    expect(repository.has(dependency.token)).toBe(true)
     expect(repository.get(dependency.token)).toEqual(dependency)
   })
 
