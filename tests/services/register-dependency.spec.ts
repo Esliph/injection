@@ -1,7 +1,11 @@
 import { Scope } from '@enums/scope'
 import { InjectionErrorCode } from '@exceptions/code-errors'
-import { InjectionRegisterException } from '@exceptions/register.exception'
-import { InvalidTokenInjectionException } from '@exceptions/token.exception'
+import { CreationMethodMissingInjectionException } from '@exceptions/creation-method-missing.exception'
+import { CreationMethodUseClassInjectionException } from '@exceptions/creation-method-use-class-invalid.exception'
+import { CreationMethodUseFactoryInjectionException } from '@exceptions/creation-method-use-factory-invalid.exception'
+import { CreationMultipleMethodInjectionException } from '@exceptions/creation-multiple-method.exception'
+import { InvalidTokenInjectionException } from '@exceptions/invalid-token.exception'
+import { TokenAlreadyRegisteredInjectionException } from '@exceptions/token-already-registered'
 import { DependencyRepository } from '@repositories/dependency.repository'
 import { DependencyContainer, DependencyRegister } from '@services/dependency.container'
 import { beforeEach, describe, expect, test, vi } from 'vitest'
@@ -78,8 +82,8 @@ describe('Tests for registering Dependency', () => {
       try {
         container.register([dependency] as any)
       } catch (error: any) {
-        expect(error).toBeInstanceOf(InjectionRegisterException)
-        expect(error.code).toBe(InjectionErrorCode.REGISTER_TOKEN_ALREADY_REGISTERED)
+        expect(error).toBeInstanceOf(TokenAlreadyRegisteredInjectionException)
+        expect(error.code).toBe(InjectionErrorCode.TOKEN_ALREADY_REGISTERED)
       }
     })
 
@@ -102,8 +106,8 @@ describe('Tests for registering Dependency', () => {
       try {
         container.register([dependency] as any)
       } catch (error: any) {
-        expect(error).toBeInstanceOf(InjectionRegisterException)
-        expect(error.code).toBe(InjectionErrorCode.REGISTER_TOKEN_ALREADY_REGISTERED)
+        expect(error).toBeInstanceOf(TokenAlreadyRegisteredInjectionException)
+        expect(error.code).toBe(InjectionErrorCode.TOKEN_ALREADY_REGISTERED)
       }
     })
   })
@@ -117,8 +121,8 @@ describe('Tests for registering Dependency', () => {
       try {
         container.register([dependency] as any)
       } catch (error: any) {
-        expect(error).toBeInstanceOf(InjectionRegisterException)
-        expect(error.code).toBe(InjectionErrorCode.REGISTER_CREATION_MISSING)
+        expect(error).toBeInstanceOf(CreationMethodMissingInjectionException)
+        expect(error.code).toBe(InjectionErrorCode.CREATION_METHOD_MISSING)
       }
     })
 
@@ -134,8 +138,8 @@ describe('Tests for registering Dependency', () => {
       try {
         container.register([dependency] as any)
       } catch (error: any) {
-        expect(error).toBeInstanceOf(InjectionRegisterException)
-        expect(error.code).toBe(InjectionErrorCode.REGISTER_CREATION_MULTIPLE)
+        expect(error).toBeInstanceOf(CreationMultipleMethodInjectionException)
+        expect(error.code).toBe(InjectionErrorCode.CREATION_MULTIPLE_METHOD)
       }
     })
 
@@ -151,8 +155,8 @@ describe('Tests for registering Dependency', () => {
       try {
         container.register([dependency] as any)
       } catch (error: any) {
-        expect(error).toBeInstanceOf(InjectionRegisterException)
-        expect(error.code).toBe(InjectionErrorCode.REGISTER_CREATION_MULTIPLE)
+        expect(error).toBeInstanceOf(CreationMultipleMethodInjectionException)
+        expect(error.code).toBe(InjectionErrorCode.CREATION_MULTIPLE_METHOD)
       }
     })
 
@@ -166,8 +170,8 @@ describe('Tests for registering Dependency', () => {
       try {
         container.register([dependency] as any)
       } catch (error: any) {
-        expect(error).toBeInstanceOf(InjectionRegisterException)
-        expect(error.code).toBe(InjectionErrorCode.REGISTER_CREATION_MULTIPLE)
+        expect(error).toBeInstanceOf(CreationMultipleMethodInjectionException)
+        expect(error.code).toBe(InjectionErrorCode.CREATION_MULTIPLE_METHOD)
       }
     })
 
@@ -180,8 +184,8 @@ describe('Tests for registering Dependency', () => {
       try {
         container.register([dependency] as any)
       } catch (error: any) {
-        expect(error).toBeInstanceOf(InjectionRegisterException)
-        expect(error.code).toBe(InjectionErrorCode.REGISTER_USE_CLASS_INVALID)
+        expect(error).toBeInstanceOf(CreationMethodUseClassInjectionException)
+        expect(error.code).toBe(InjectionErrorCode.CREATION_METHOD_USE_CLASS_INVALID)
       }
     })
 
@@ -194,8 +198,8 @@ describe('Tests for registering Dependency', () => {
       try {
         container.register([dependency] as any)
       } catch (error: any) {
-        expect(error).toBeInstanceOf(InjectionRegisterException)
-        expect(error.code).toBe(InjectionErrorCode.REGISTER_USE_FACTORY_INVALID)
+        expect(error).toBeInstanceOf(CreationMethodUseFactoryInjectionException)
+        expect(error.code).toBe(InjectionErrorCode.CREATION_METHOD_USE_FACTORY_INVALID)
       }
     })
   })

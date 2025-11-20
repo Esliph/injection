@@ -1,9 +1,13 @@
 import { Dependency, DependencyCreation, DependencyToken } from '@common/types/dependency'
 import { getInjectTokens } from '@decorators/inject.decorator'
 import { Scope } from '@enums/scope'
-import { InjectionErrorCode } from '@exceptions/code-errors'
-import { InjectionRegisterException } from '@exceptions/register.exception'
-import { ResolveException } from '@exceptions/resolve.exception'
+import { ClassConstructorInvalidInjectionException } from '@exceptions/class-constructor-invalid.exception'
+import { CreationMethodMissingInjectionException } from '@exceptions/creation-method-missing.exception'
+import { CreationMethodUseClassInjectionException } from '@exceptions/creation-method-use-class-invalid.exception'
+import { CreationMethodUseFactoryInjectionException } from '@exceptions/creation-method-use-factory-invalid.exception'
+import { CreationMultipleMethodInjectionException } from '@exceptions/creation-multiple-method.exception'
+import { TokenAlreadyRegisteredInjectionException } from '@exceptions/token-already-registered'
+import { TokenNotRegisteredInjectionException } from '@exceptions/token-not-registered'
 import { DependencyRepository } from '@repositories/dependency.repository'
 import { assertValidToken, getTokenName } from '@utils/token'
 import { ClassConstructor, isClass } from '@utils/types'
@@ -25,7 +29,7 @@ export class DependencyContainer {
     for (const dependencyRegister of dependencies) {
       const dependency = this.createDependency(dependencyRegister)
 
-      assertValidToken(dependency.token)
+      this.validateTokenToRegister(dependency.token)
       this.validateUseCreationsToRegister(dependency)
 
       this.repository.register(dependency)
@@ -44,10 +48,7 @@ export class DependencyContainer {
 
   protected resolveClass<TClass extends ClassConstructor>(classConstructor: TClass) {
     if (!isClass(classConstructor)) {
-      throw new ResolveException(
-        InjectionErrorCode.RESOLVE_EXPECTED_CLASS,
-        `A "class constructor" was expected, but a "${typeof classConstructor}" was received`
-      )
+      throw new ClassConstructorInvalidInjectionException(`A "class constructor" was expected, but a "${typeof classConstructor}" was received`)
     }
 
     const { constructorParams, properties } = getInjectTokens(classConstructor)
@@ -76,10 +77,7 @@ export class DependencyContainer {
     const dependency = this.repository.get(token)
 
     if (!dependency) {
-      throw new ResolveException(
-        InjectionErrorCode.RESOLVE_NOT_REGISTERED,
-        `Dependency "${getTokenName(token)}" not registered in the container`
-      )
+      throw new TokenNotRegisteredInjectionException(`Dependency "${getTokenName(token)}" not registered in the container`)
     }
 
     if (dependency.scope == Scope.SINGLETON && this.singletonInstances.has(dependency.token)) {
@@ -121,32 +119,28 @@ export class DependencyContainer {
     }
   }
 
+  protected validateTokenToRegister(token: any) {
+    assertValidToken(token)
+
+    if (this.repository.get(token) !== null) {
+      throw new TokenAlreadyRegisteredInjectionException(`Dependency "${getTokenName(token)}" already registered`)
+    }
+  }
+
   protected validateUseCreationsToRegister({ useClass, useFactory, useValue }: DependencyCreation) {
     const propsCreational = [useClass, useFactory, useValue].filter(useCreation => useCreation !== undefined && useCreation !== null)
 
     if (!propsCreational.length) {
-      throw new InjectionRegisterException(
-        InjectionErrorCode.REGISTER_CREATION_MISSING,
-        'You must provide a method option for creating the dependency: "useClass", "useFactory" or "useValue"'
-      )
+      throw new CreationMethodMissingInjectionException('You must provide a method option for creating the dependency: "useClass", "useFactory" or "useValue"')
     }
     if (propsCreational.length > 1) {
-      throw new InjectionRegisterException(
-        InjectionErrorCode.REGISTER_CREATION_MULTIPLE,
-        'Please specify only one of the dependency creation options: "useClass", "useFactory", or "useValue"'
-      )
+      throw new CreationMultipleMethodInjectionException('Please specify only one of the dependency creation options: "useClass", "useFactory", or "useValue"')
     }
 
     if (useClass && !isClass(useClass)) {
-      throw new InjectionRegisterException(
-        InjectionErrorCode.REGISTER_USE_CLASS_INVALID,
-        `It was expected that useClass would be a "class", but a "${typeof useClass}" was received`
-      )
+      throw new CreationMethodUseClassInjectionException(`It was expected that useClass would be a "class", but a "${typeof useClass}" was received`)
     } else if (useFactory && typeof useFactory !== 'function') {
-      throw new InjectionRegisterException(
-        InjectionErrorCode.REGISTER_USE_FACTORY_INVALID,
-        `It was expected that useFactory would be a "function", but a "${typeof useClass}" was received`
-      )
+      throw new CreationMethodUseFactoryInjectionException(`It was expected that useFactory would be a "function", but a "${typeof useClass}" was received`)
     }
   }
 

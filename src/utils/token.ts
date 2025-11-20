@@ -1,5 +1,5 @@
 import { DependencyToken } from '@common/types/dependency'
-import { InvalidTokenInjectionException } from '@exceptions/token.exception'
+import { InvalidTokenInjectionException } from '@exceptions/invalid-token.exception'
 import { isClass } from '@utils/types'
 
 export function getTokenName(token: DependencyToken) {

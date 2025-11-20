@@ -1,7 +1,8 @@
 import { Inject } from '@decorators/inject.decorator'
 import { Scope } from '@enums/scope'
+import { ClassConstructorInvalidInjectionException } from '@exceptions/class-constructor-invalid.exception'
 import { InjectionErrorCode } from '@exceptions/code-errors'
-import { ResolveException } from '@exceptions/resolve.exception'
+import { TokenNotRegisteredInjectionException } from '@exceptions/token-not-registered'
 import { DependencyContainer } from '@services/dependency.container'
 import { beforeEach, describe, expect, test } from 'vitest'
 
@@ -48,8 +49,8 @@ describe('Resolve dependency', () => {
     try {
       container.resolve(TestUseFactoryWithStringTokenParam)
     } catch (error: any) {
-      expect(error).toBeInstanceOf(ResolveException)
-      expect(error.code).toBe(InjectionErrorCode.RESOLVE_NOT_REGISTERED)
+      expect(error).toBeInstanceOf(TokenNotRegisteredInjectionException)
+      expect(error.code).toBe(InjectionErrorCode.TOKEN_NOT_REGISTERED)
     }
   })
 
@@ -63,8 +64,8 @@ describe('Resolve dependency', () => {
     try {
       container.resolve(TestWithoutToken)
     } catch (error: any) {
-      expect(error).toBeInstanceOf(ResolveException)
-      expect(error.code).toBe(InjectionErrorCode.RESOLVE_NOT_REGISTERED)
+      expect(error).toBeInstanceOf(TokenNotRegisteredInjectionException)
+      expect(error.code).toBe(InjectionErrorCode.TOKEN_NOT_REGISTERED)
     }
   })
 
@@ -72,8 +73,8 @@ describe('Resolve dependency', () => {
     try {
       container.resolve('TOKEN_NOT_REGISTERED')
     } catch (error: any) {
-      expect(error).toBeInstanceOf(ResolveException)
-      expect(error.code).toBe(InjectionErrorCode.RESOLVE_EXPECTED_CLASS)
+      expect(error).toBeInstanceOf(ClassConstructorInvalidInjectionException)
+      expect(error.code).toBe(InjectionErrorCode.CLASS_CONSTRUCTOR_INVALID)
     }
   })
 

@@ -1,5 +1,5 @@
 import { InjectionErrorCode } from '@exceptions/code-errors'
-import { InvalidTokenInjectionException } from '@exceptions/token.exception'
+import { InvalidTokenInjectionException } from '@exceptions/invalid-token.exception'
 import { assertValidToken, isValidToken } from '@utils/token'
 import { describe, expect, test } from 'vitest'
 
