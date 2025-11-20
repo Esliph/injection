@@ -1,3 +1,5 @@
-export class ResolveException extends Error {
+import { InjectionException } from '@exceptions/injection.exception';
+
+export class ResolveException extends InjectionException {
 
 }

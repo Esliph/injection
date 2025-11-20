@@ -1,4 +1,5 @@
 import { Scope } from '@enums/scope'
+import { InjectionErrorCode } from '@exceptions/code-errors'
 import { InjectionRegisterException } from '@exceptions/register.exception'
 import { DependencyRepository } from '@repositories/dependency.repository'
 import { DependencyContainer, DependencyRegister } from '@services/dependency.container'
@@ -51,7 +52,12 @@ describe('Tests for registering Dependency', () => {
         useValue: 10
       } as any
 
-      expect(() => container.register([dependency] as any)).toThrowError(InjectionRegisterException)
+      try {
+        container.register([dependency] as any)
+      } catch (error: any) {
+        expect(error).toBeInstanceOf(InjectionRegisterException)
+        expect(error.code).toBe(InjectionErrorCode.REGISTER_TOKEN_MISSING)
+      }
     })
 
     test('An exception is expected to be thrown if you attempt to register a dependency with a string token that has already been registered', () => {
@@ -68,7 +74,12 @@ describe('Tests for registering Dependency', () => {
         useValue: 10
       }
 
-      expect(() => container.register([dependency] as any)).toThrowError(InjectionRegisterException)
+      try {
+        container.register([dependency] as any)
+      } catch (error: any) {
+        expect(error).toBeInstanceOf(InjectionRegisterException)
+        expect(error.code).toBe(InjectionErrorCode.REGISTER_TOKEN_ALREADY_REGISTERED)
+      }
     })
 
     test('An exception is expected to be thrown if you try to register a dependency with a token in a class that has already been registered', () => {
@@ -87,7 +98,12 @@ describe('Tests for registering Dependency', () => {
         useValue: 10
       }
 
-      expect(() => container.register([dependency] as any)).toThrowError(InjectionRegisterException)
+      try {
+        container.register([dependency] as any)
+      } catch (error: any) {
+        expect(error).toBeInstanceOf(InjectionRegisterException)
+        expect(error.code).toBe(InjectionErrorCode.REGISTER_TOKEN_ALREADY_REGISTERED)
+      }
     })
   })
 
@@ -97,7 +113,12 @@ describe('Tests for registering Dependency', () => {
         token: 'TOKEN'
       }
 
-      expect(() => container.register([dependency] as any)).toThrowError(InjectionRegisterException)
+      try {
+        container.register([dependency] as any)
+      } catch (error: any) {
+        expect(error).toBeInstanceOf(InjectionRegisterException)
+        expect(error.code).toBe(InjectionErrorCode.REGISTER_CREATION_MISSING)
+      }
     })
 
     test('An exception is expected to be thrown if both useClass and useValue are specified simultaneously', () => {
@@ -109,7 +130,12 @@ describe('Tests for registering Dependency', () => {
         useValue: 10,
       }
 
-      expect(() => container.register([dependency] as any)).toThrowError(InjectionRegisterException)
+      try {
+        container.register([dependency] as any)
+      } catch (error: any) {
+        expect(error).toBeInstanceOf(InjectionRegisterException)
+        expect(error.code).toBe(InjectionErrorCode.REGISTER_CREATION_MULTIPLE)
+      }
     })
 
     test('An exception is expected to be thrown if both useClass and useFactory are specified simultaneously', () => {
@@ -121,7 +147,12 @@ describe('Tests for registering Dependency', () => {
         useFactory: () => { },
       }
 
-      expect(() => container.register([dependency] as any)).toThrowError(InjectionRegisterException)
+      try {
+        container.register([dependency] as any)
+      } catch (error: any) {
+        expect(error).toBeInstanceOf(InjectionRegisterException)
+        expect(error.code).toBe(InjectionErrorCode.REGISTER_CREATION_MULTIPLE)
+      }
     })
 
     test('An exception is expected to be thrown if both useClass and useFactory are specified simultaneously', () => {
@@ -131,7 +162,12 @@ describe('Tests for registering Dependency', () => {
         useValue: 10,
       }
 
-      expect(() => container.register([dependency] as any)).toThrowError(InjectionRegisterException)
+      try {
+        container.register([dependency] as any)
+      } catch (error: any) {
+        expect(error).toBeInstanceOf(InjectionRegisterException)
+        expect(error.code).toBe(InjectionErrorCode.REGISTER_CREATION_MULTIPLE)
+      }
     })
 
     test('An exception is expected to be thrown when useClass does not receive a class', () => {
@@ -140,7 +176,12 @@ describe('Tests for registering Dependency', () => {
         useClass: 10 as any,
       }
 
-      expect(() => container.register([dependency] as any)).toThrowError(InjectionRegisterException)
+      try {
+        container.register([dependency] as any)
+      } catch (error: any) {
+        expect(error).toBeInstanceOf(InjectionRegisterException)
+        expect(error.code).toBe(InjectionErrorCode.REGISTER_USE_CLASS_INVALID)
+      }
     })
 
     test('An exception is expected to be thrown when useFactory does not receive a function', () => {
@@ -149,7 +190,12 @@ describe('Tests for registering Dependency', () => {
         useFactory: true as any,
       }
 
-      expect(() => container.register([dependency] as any)).toThrowError(InjectionRegisterException)
+      try {
+        container.register([dependency] as any)
+      } catch (error: any) {
+        expect(error).toBeInstanceOf(InjectionRegisterException)
+        expect(error.code).toBe(InjectionErrorCode.REGISTER_USE_FACTORY_INVALID)
+      }
     })
   })
 })

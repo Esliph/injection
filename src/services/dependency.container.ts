@@ -1,6 +1,7 @@
 import { DependencyCreation, DependencyToken } from '@common/types/dependency'
 import { getInjectTokens } from '@decorators/inject.decorator'
 import { Scope } from '@enums/scope'
+import { InjectionErrorCode } from '@exceptions/code-errors'
 import { InjectionRegisterException } from '@exceptions/register.exception'
 import { ResolveException } from '@exceptions/resolve.exception'
 import { DependencyRepository } from '@repositories/dependency.repository'
@@ -47,7 +48,10 @@ export class DependencyContainer {
 
   protected resolveClass<TClass extends ClassConstructor>(classConstructor: TClass) {
     if (!isClass(classConstructor)) {
-      throw new ResolveException(`A "class constructor" was expected, but a "${typeof classConstructor}" was received`)
+      throw new ResolveException(
+        InjectionErrorCode.RESOLVE_EXPECTED_CLASS,
+        `A "class constructor" was expected, but a "${typeof classConstructor}" was received`
+      )
     }
 
     const { constructorParams, properties } = getInjectTokens(classConstructor)
@@ -76,7 +80,10 @@ export class DependencyContainer {
     const dependency = this.repository.get(token)
 
     if (!dependency) {
-      throw new ResolveException(`Dependency "${getTokenName(token)}" not registered in the container`)
+      throw new ResolveException(
+        InjectionErrorCode.RESOLVE_NOT_REGISTERED,
+        `Dependency "${getTokenName(token)}" not registered in the container`
+      )
     }
 
     if (dependency.scope == Scope.SINGLETON && this.singletonInstances.has(dependency.token)) {
@@ -106,11 +113,17 @@ export class DependencyContainer {
 
   protected validateTokenToRegister(token: DependencyToken) {
     if (!token) {
-      throw new InjectionRegisterException('A Token must be provided for the dependency')
+      throw new InjectionRegisterException(
+        InjectionErrorCode.REGISTER_TOKEN_MISSING,
+        'A Token must be provided for the dependency'
+      )
     }
 
     if (this.repository.get(token) !== null) {
-      throw new InjectionRegisterException(`Dependency "${getTokenName(token)}" already registered`)
+      throw new InjectionRegisterException(
+        InjectionErrorCode.REGISTER_TOKEN_ALREADY_REGISTERED,
+        `Dependency "${getTokenName(token)}" already registered`
+      )
     }
   }
 
@@ -118,16 +131,28 @@ export class DependencyContainer {
     const propsCreational = [useClass, useFactory, useValue].filter(useCreation => useCreation !== undefined && useCreation !== null)
 
     if (!propsCreational.length) {
-      throw new InjectionRegisterException('You must provide a method option for creating the dependency: "useClass", "useFactory" or "useValue"')
+      throw new InjectionRegisterException(
+        InjectionErrorCode.REGISTER_CREATION_MISSING,
+        'You must provide a method option for creating the dependency: "useClass", "useFactory" or "useValue"'
+      )
     }
     if (propsCreational.length > 1) {
-      throw new InjectionRegisterException('Please specify only one of the dependency creation options: "useClass", "useFactory", or "useValue"')
+      throw new InjectionRegisterException(
+        InjectionErrorCode.REGISTER_CREATION_MULTIPLE,
+        'Please specify only one of the dependency creation options: "useClass", "useFactory", or "useValue"'
+      )
     }
 
     if (useClass && !isClass(useClass)) {
-      throw new InjectionRegisterException(`It was expected that useClass would be a "class", but a "${typeof useClass}" was received`)
+      throw new InjectionRegisterException(
+        InjectionErrorCode.REGISTER_USE_CLASS_INVALID,
+        `It was expected that useClass would be a "class", but a "${typeof useClass}" was received`
+      )
     } else if (useFactory && typeof useFactory !== 'function') {
-      throw new InjectionRegisterException(`It was expected that useFactory would be a "function", but a "${typeof useClass}" was received`)
+      throw new InjectionRegisterException(
+        InjectionErrorCode.REGISTER_USE_FACTORY_INVALID,
+        `It was expected that useFactory would be a "function", but a "${typeof useClass}" was received`
+      )
     }
   }
 
