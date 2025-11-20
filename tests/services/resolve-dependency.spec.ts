@@ -35,6 +35,24 @@ describe('Resolve dependency', () => {
     expect(instance).toBeInstanceOf(TestWithoutToken)
   })
 
+  test('An instance is expected to be created by injecting a dependency via a constructor parameter using a value and a non-token pattern', () => {
+    class Service { }
+
+    class TestUseFactoryWithStringTokenParam {
+      constructor(
+        public param: any,
+        @Inject(Service) public service: Service,
+      ) { }
+    }
+
+    try {
+      container.resolve(TestUseFactoryWithStringTokenParam)
+    } catch (error: any) {
+      expect(error).toBeInstanceOf(ResolveException)
+      expect(error.code).toBe(InjectionErrorCode.RESOLVE_NOT_REGISTERED)
+    }
+  })
+
   test('An exception is expected to be thrown if the token mapped in the class is not registered in the container', () => {
     class TestWithoutToken {
       constructor(

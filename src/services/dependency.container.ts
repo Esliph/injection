@@ -1,4 +1,4 @@
-import { DependencyCreation, DependencyToken } from '@common/types/dependency'
+import { Dependency, DependencyCreation, DependencyToken } from '@common/types/dependency'
 import { getInjectTokens } from '@decorators/inject.decorator'
 import { Scope } from '@enums/scope'
 import { InjectionErrorCode } from '@exceptions/code-errors'
@@ -22,19 +22,13 @@ export class DependencyContainer {
   ) { }
 
   register(dependencies: DependencyRegister[]) {
-    for (const dependency of dependencies) {
-      const { token, scope, useClass, useFactory, useValue } = typeof dependency == 'object' ? dependency : { token: dependency, useClass: dependency }
+    for (const dependencyRegister of dependencies) {
+      const dependency = this.createDependency(dependencyRegister)
 
-      assertValidToken(token)
-      this.validateUseCreationsToRegister({ useClass, useFactory, useValue })
+      assertValidToken(dependency.token)
+      this.validateUseCreationsToRegister(dependency)
 
-      this.repository.register({
-        token,
-        scope: scope || Scope.REQUEST,
-        useClass,
-        useFactory,
-        useValue,
-      })
+      this.repository.register(dependency)
     }
   }
 
@@ -111,6 +105,20 @@ export class DependencyContainer {
     }
 
     return tokenResolved as T
+  }
+
+  protected createDependency(dependency: DependencyRegister): Dependency {
+    const { token, scope, useClass, useFactory, useValue } = typeof dependency == 'object'
+      ? dependency
+      : { token: dependency, useClass: dependency }
+
+    return {
+      token,
+      scope: scope || Scope.REQUEST,
+      useClass,
+      useFactory,
+      useValue,
+    }
   }
 
   protected validateUseCreationsToRegister({ useClass, useFactory, useValue }: DependencyCreation) {
