@@ -131,6 +131,10 @@ export class DependencyContainer {
     }
   }
 
+  hasDependency(token: DependencyToken) {
+    return this.repository.has(token)
+  }
+
   getDependency(token: DependencyToken) {
     return this.repository.get(token)
   }

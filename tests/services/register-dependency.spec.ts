@@ -22,6 +22,7 @@ describe('Tests for registering Dependency', () => {
 
     container.register([dependency])
 
+    expect(container.hasDependency(dependency.token)).toEqual(true)
     expect(container.getDependency(dependency.token)).toEqual(dependency)
   })
 
