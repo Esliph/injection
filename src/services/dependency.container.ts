@@ -14,6 +14,8 @@ export type DependencyRegister = (DependencyCreation & {
 
 export class DependencyContainer {
 
+  protected singletonInstances = new Map<DependencyToken, any>()
+
   constructor(
     protected repository = new DependencyRepository()
   ) { }
@@ -35,16 +37,33 @@ export class DependencyContainer {
     }
   }
 
-  resolve<TConstructor extends ClassConstructor>(context: TConstructor): InstanceType<TConstructor> {
-    const { constructorParams, properties } = getInjectTokens(context)
+  resolve<TToken = any>(token: DependencyToken): TToken {
+    if (this.repository.has(token)) {
+      return this.resolveToken(token)
+    }
+
+    return this.resolveClass(token as ClassConstructor)
+  }
+
+  protected resolveClass<TClass extends ClassConstructor>(classConstructor: TClass) {
+    if (!isClass(classConstructor)) {
+      throw new ResolveException(`A "class constructor" was expected, but a "${typeof classConstructor}" was received`)
+    }
+
+    const { constructorParams, properties } = getInjectTokens(classConstructor)
 
     const params = []
 
     for (let i = 0; i < constructorParams.length; i++) {
-      params[i] = this.resolveToken(constructorParams[i])
+      if (constructorParams[i] === undefined) {
+        params[i] = null
+      }
+      else {
+        params[i] = this.resolveToken(constructorParams[i])
+      }
     }
 
-    const instance = new context(...params)
+    const instance = new classConstructor(...params) as InstanceType<TClass>
 
     for (const prop in properties) {
       instance[prop] = this.resolveToken(properties[prop])
@@ -53,26 +72,36 @@ export class DependencyContainer {
     return instance
   }
 
-  protected resolveToken(token: DependencyToken) {
-    if (token === undefined) {
-      return null
-    }
-
+  protected resolveToken<T = any>(token: DependencyToken) {
     const dependency = this.repository.get(token)
 
     if (!dependency) {
       throw new ResolveException(`Dependency "${getTokenName(token)}" not registered in the container`)
     }
 
+    if (dependency.scope == Scope.SINGLETON && this.singletonInstances.has(dependency.token)) {
+      return this.singletonInstances.get(dependency.token)
+    }
+
+    let tokenResolved = null
+
     if (dependency.useValue) {
-      return dependency.useValue
+      tokenResolved = dependency.useValue
     }
 
     if (dependency.useFactory) {
-      return dependency.useFactory()
+      tokenResolved = dependency.useFactory()
     }
 
-    return this.resolve(dependency.useClass!)
+    if (dependency.useClass) {
+      tokenResolved = this.resolveClass(dependency.useClass)
+    }
+
+    if (dependency.scope == Scope.SINGLETON) {
+      this.singletonInstances.set(dependency.token, tokenResolved)
+    }
+
+    return tokenResolved as T
   }
 
   protected validateTokenToRegister(token: DependencyToken) {
