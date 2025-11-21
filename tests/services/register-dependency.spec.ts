@@ -9,6 +9,7 @@ import { TokenAlreadyRegisteredInjectionException } from '@exceptions/token-alre
 import { DependencyRepository } from '@repositories/dependency.repository'
 import { DependencyContainer, DependencyRegister } from '@services/dependency.container'
 import { beforeEach, describe, expect, test, vi } from 'vitest'
+import { Injectable } from '@decorators/injectable.decorator'
 
 describe('Tests for registering Dependency', () => {
   let container: DependencyContainer
@@ -201,6 +202,85 @@ describe('Tests for registering Dependency', () => {
         expect(error).toBeInstanceOf(CreationMethodUseFactoryInjectionException)
         expect(error.code).toBe(InjectionErrorCode.CREATION_METHOD_USE_FACTORY_INVALID)
       }
+    })
+  })
+
+  describe('Injectable', () => {
+    test('Simple register', () => {
+      @Injectable()
+      class Test { }
+
+      container.register([Test])
+
+      const dependency = container.getDependency(Test)
+
+      expect(dependency).toBeDefined()
+      expect(dependency?.token).toBe(Test)
+      expect(dependency?.scope).toBe(Scope.REQUEST)
+      expect(dependency?.useClass).toBe(Test)
+    })
+
+    test('Simple register with Scope', () => {
+      @Injectable({ scope: Scope.SINGLETON })
+      class Test { }
+
+      container.register([Test])
+
+      const dependency = container.getDependency(Test)
+
+      expect(dependency).toBeDefined()
+      expect(dependency?.token).toBe(Test)
+      expect(dependency?.scope).toBe(Scope.SINGLETON)
+      expect(dependency?.useClass).toBe(Test)
+    })
+
+    test('Simple register with another Token', () => {
+      @Injectable({ token: 'TOKEN' })
+      class Test { }
+
+      container.register([Test])
+
+      expect(container.getDependency(Test)).toBeNull()
+
+      const dependency = container.getDependency('TOKEN')
+
+      expect(dependency).toBeDefined()
+      expect(dependency?.token).toBe('TOKEN')
+      expect(dependency?.scope).toBe(Scope.REQUEST)
+      expect(dependency?.useClass).toBe(Test)
+    })
+
+    test('Complete register with another Token and scope', () => {
+      @Injectable({ token: 'TOKEN', scope: Scope.SINGLETON })
+      class Test { }
+
+      container.register([Test])
+
+      expect(container.getDependency(Test)).toBeNull()
+
+      const dependency = container.getDependency('TOKEN')
+
+      expect(dependency).toBeDefined()
+      expect(dependency?.token).toBe('TOKEN')
+      expect(dependency?.scope).toBe(Scope.SINGLETON)
+      expect(dependency?.useClass).toBe(Test)
+    })
+
+    test('Simple register', () => {
+      @Injectable({ token: 'TOKEN', scope: Scope.SINGLETON })
+      class Test { }
+
+      container.register([{ token: 'ANOTHER_TOKEN', useClass: Test }])
+
+      expect(container.getDependency(Test)).toBeNull()
+      expect(container.getDependency('TOKEN')).toBeNull()
+
+      const dependency = container.getDependency('ANOTHER_TOKEN')
+
+      expect(dependency).toBeDefined()
+      expect(dependency?.token).toBe('ANOTHER_TOKEN')
+      expect(dependency?.scope).toBe(Scope.SINGLETON)
+      expect(dependency?.useClass).toBe(Test)
     })
   })
 })
