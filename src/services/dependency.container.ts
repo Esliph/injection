@@ -11,11 +11,14 @@ import { TokenNotRegisteredInjectionException } from '@exceptions/token-not-regi
 import { DependencyRepository } from '@repositories/dependency.repository'
 import { assertValidToken, getTokenName } from '@utils/token'
 import { ClassConstructor, isClass } from '@utils/types'
+import { getInjectableDependency } from '@decorators/injectable.decorator'
 
-export type DependencyRegister = (DependencyCreation & {
+export type DependencyRegisterObject = DependencyCreation & {
   token: DependencyToken
   scope?: Scope
-}) | ClassConstructor
+}
+
+export type DependencyRegister = DependencyRegisterObject | ClassConstructor
 
 export class DependencyContainer {
 
@@ -106,9 +109,7 @@ export class DependencyContainer {
   }
 
   protected createDependency(dependency: DependencyRegister): Dependency {
-    const { token, scope, useClass, useFactory, useValue } = typeof dependency == 'object'
-      ? dependency
-      : { token: dependency, useClass: dependency }
+    const { token, scope, useClass, useFactory, useValue } = this.extractDataFromDepedencyRegister(dependency)
 
     return {
       token,
@@ -117,6 +118,34 @@ export class DependencyContainer {
       useFactory,
       useValue,
     }
+  }
+
+  protected extractDataFromDepedencyRegister(dependency: DependencyRegister): DependencyRegisterObject {
+    if (typeof dependency == 'object') {
+      return this.extractDataFromObjectDepedencyRegister(dependency)
+    }
+
+    return this.extractDataFromClassDepedencyRegister(dependency)
+  }
+
+  protected extractDataFromObjectDepedencyRegister(dependency: DependencyRegisterObject) {
+    const data = { ...dependency }
+
+    if (data.useClass === undefined) {
+      return data
+    }
+
+    const metadata = getInjectableDependency(data.useClass) || {}
+
+    if (!data.scope) {
+      data.scope = metadata.scope
+    }
+
+    return data
+  }
+
+  protected extractDataFromClassDepedencyRegister(dependency: ClassConstructor) {
+    return getInjectableDependency(dependency) || { token: dependency, useClass: dependency }
   }
 
   protected validateTokenToRegister(token: any) {
