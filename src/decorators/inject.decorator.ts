@@ -1,30 +1,31 @@
 import { DependencyToken } from '@common/types/dependency'
 import { Decorator } from '@esliph/decorator'
-import 'reflect-metadata'
+import { Metadata } from '@metadata/global'
+import { MetadataKey } from '@metadata/types'
 
 const INJECT_PARAM_KEY = 'inject:params'
-const INJECT_CONSTRUCTOR_PROPERTIES_KEY = 'inject:constructor:properties'
+const INJECT_PROPERTIES_KEY = 'inject:properties'
 
 export const Inject = (token: DependencyToken) => Decorator.Generic({
   parameter: (target, _, parameterIndex) => {
-    const existing = Reflect.getMetadata(INJECT_PARAM_KEY, target) || []
+    const existing = Metadata.getClassMetadata(target, INJECT_PARAM_KEY) as DependencyToken[] ?? []
 
     existing[parameterIndex] = token
 
-    Reflect.defineMetadata(INJECT_PARAM_KEY, existing, target)
+    Metadata.setClassMetadata(target, INJECT_PARAM_KEY, existing)
   },
   property: (target, propertyKey) => {
-    const existing = Reflect.getMetadata(INJECT_CONSTRUCTOR_PROPERTIES_KEY, target) || {}
+    const existing = Metadata.getClassMetadata(target, INJECT_PROPERTIES_KEY) as Record<MetadataKey, DependencyToken> ?? {}
 
     existing[propertyKey] = token
 
-    Reflect.defineMetadata(INJECT_CONSTRUCTOR_PROPERTIES_KEY, existing, target)
+    Metadata.setClassMetadata(target, INJECT_PROPERTIES_KEY, existing)
   },
 })
 
 export function getInjectTokens(target: Object): { constructorParams: DependencyToken[], properties: DependencyToken[] } {
   return {
-    constructorParams: Reflect.getMetadata(INJECT_PARAM_KEY, target) || [],
-    properties: Reflect.getMetadata(INJECT_CONSTRUCTOR_PROPERTIES_KEY, (target as any).prototype) || {},
+    constructorParams: Metadata.getClassMetadata(target, INJECT_PARAM_KEY) ?? [],
+    properties: Metadata.getClassMetadata(target, INJECT_PROPERTIES_KEY) ?? {},
   }
 }
