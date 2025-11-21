@@ -1,7 +1,7 @@
 import { getInjectTokens, Inject } from '@decorators/inject.decorator'
 import { describe, expect, test } from 'vitest'
 
-describe('Decorators Test', () => {
+describe('Decorator Inject', () => {
   test('It is expected that tokens will be stored as strings in the parameters and properties', () => {
     class TestWithStringToken {
 
