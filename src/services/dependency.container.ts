@@ -1,5 +1,6 @@
 import { Dependency, DependencyCreation, DependencyToken } from '@common/types/dependency'
 import { getInjectTokens } from '@decorators/inject.decorator'
+import { getInjectableDependency } from '@decorators/injectable.decorator'
 import { Scope } from '@enums/scope'
 import { ClassConstructorInvalidInjectionException } from '@exceptions/class-constructor-invalid.exception'
 import { CreationMethodMissingInjectionException } from '@exceptions/creation-method-missing.exception'
@@ -11,7 +12,6 @@ import { TokenNotRegisteredInjectionException } from '@exceptions/token-not-regi
 import { DependencyRepository } from '@repositories/dependency.repository'
 import { assertValidToken, getTokenName } from '@utils/token'
 import { ClassConstructor, isClass } from '@utils/types'
-import { getInjectableDependency } from '@decorators/injectable.decorator'
 
 export type DependencyRegisterObject = DependencyCreation & {
   token: DependencyToken
@@ -109,7 +109,7 @@ export class DependencyContainer {
   }
 
   protected createDependency(dependency: DependencyRegister): Dependency {
-    const { token, scope, useClass, useFactory, useValue } = this.extractDataFromDepedencyRegister(dependency)
+    const { token, scope, useClass, useFactory, useValue } = this.extractDataFromDependencyRegister(dependency)
 
     return {
       token,
@@ -120,15 +120,15 @@ export class DependencyContainer {
     }
   }
 
-  protected extractDataFromDepedencyRegister(dependency: DependencyRegister): DependencyRegisterObject {
+  protected extractDataFromDependencyRegister(dependency: DependencyRegister): DependencyRegisterObject {
     if (typeof dependency == 'object') {
-      return this.extractDataFromObjectDepedencyRegister(dependency)
+      return this.extractDataFromObjectDependencyRegister(dependency)
     }
 
-    return this.extractDataFromClassDepedencyRegister(dependency)
+    return this.extractDataFromClassDependencyRegister(dependency)
   }
 
-  protected extractDataFromObjectDepedencyRegister(dependency: DependencyRegisterObject) {
+  protected extractDataFromObjectDependencyRegister(dependency: DependencyRegisterObject) {
     const data = { ...dependency }
 
     if (data.useClass === undefined) {
@@ -137,14 +137,14 @@ export class DependencyContainer {
 
     const metadata = getInjectableDependency(data.useClass) || {}
 
-    if (!data.scope) {
+    if (data.scope === undefined) {
       data.scope = metadata.scope
     }
 
     return data
   }
 
-  protected extractDataFromClassDepedencyRegister(dependency: ClassConstructor) {
+  protected extractDataFromClassDependencyRegister(dependency: ClassConstructor) {
     return getInjectableDependency(dependency) || { token: dependency, useClass: dependency }
   }
 
