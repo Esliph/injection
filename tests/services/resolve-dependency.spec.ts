@@ -1,4 +1,5 @@
 import { Inject } from '@decorators/inject.decorator'
+import { Injectable } from '@decorators/injectable.decorator'
 import { Scope } from '@enums/scope'
 import { ClassConstructorInvalidInjectionException } from '@exceptions/class-constructor-invalid.exception'
 import { InjectionErrorCode } from '@exceptions/code-errors'
@@ -393,6 +394,84 @@ describe('Resolve dependency', () => {
       container.resolve(Service)
 
       expect(Service.countInstance).toBe(1)
+    })
+  })
+
+  describe('Injectable', () => {
+    test('The dependency is expected to be resolved by specifying a class decorated with Injectable', () => {
+      @Injectable()
+      class Test { }
+
+      container.register([Test])
+
+      const instance = container.resolve(Test)
+
+      expect(instance).toBeInstanceOf(Test)
+    })
+
+    test('It is expected that a dependency will be resolved by specifying a class decorated with Injectable, specifying the SINGLETON scope', () => {
+      @Injectable({ scope: Scope.SINGLETON })
+      class Test { }
+
+      container.register([Test])
+
+      const instance = container.resolve(Test)
+
+      expect(instance).toBeInstanceOf(Test)
+    })
+
+    test('The dependency is expected to be resolved by specifying a class decorated with Injectable and providing a custom token', () => {
+      @Injectable({ token: 'TOKEN' })
+      class Test { }
+
+      container.register([Test])
+
+      const instance = container.resolve(Test)
+
+      expect(instance).toBeInstanceOf(Test)
+    })
+
+    test('Complete resolution with another token and scope', () => {
+      @Injectable({ token: 'TOKEN', scope: Scope.SINGLETON })
+      class Test { }
+
+      container.register([Test])
+
+      const instance = container.resolve(Test)
+
+      expect(instance).toBeInstanceOf(Test)
+    })
+
+    test('The dependency is expected to be resolved by specifying a class decorated with Injectable, providing a custom Token, and a SINGLETON scope', () => {
+      @Injectable({ token: 'TOKEN', scope: Scope.SINGLETON })
+      class Test { }
+
+      container.register([{ token: 'ANOTHER_TOKEN', useClass: Test, scope: Scope.REQUEST }])
+
+      const instance = container.resolve(Test)
+
+      expect(instance).toBeInstanceOf(Test)
+    })
+
+    test('The dependency is expected to be resolved by specifying a class decorated with Injectable, providing a custom Token, and a SINGLETON scope', () => {
+      @Injectable()
+      class Service { }
+
+      container.register([Service])
+
+      class ABC {
+        @Inject(Service) prop: Service
+
+        constructor(
+          @Inject(Service) public param: Service
+        ) { }
+      }
+
+      const instance = container.resolve(ABC) as ABC
+
+      expect(instance).toBeInstanceOf(ABC)
+      expect(instance.prop).toBeInstanceOf(Service)
+      expect(instance.param).toBeInstanceOf(Service)
     })
   })
 })

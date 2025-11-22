@@ -205,7 +205,7 @@ describe('Tests for registering Dependency', () => {
     })
   })
 
-  describe('Injectable', () => {
+  describe('Injectable Tests', () => {
     test('Expected to register a dependency by specifying a class decorated with Injectable', () => {
       @Injectable()
       class Test { }
