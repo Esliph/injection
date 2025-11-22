@@ -1,3 +1,4 @@
+import { Injectable } from '@decorators/injectable.decorator'
 import { Scope } from '@enums/scope'
 import { InjectionErrorCode } from '@exceptions/code-errors'
 import { CreationMethodMissingInjectionException } from '@exceptions/creation-method-missing.exception'
@@ -9,7 +10,6 @@ import { TokenAlreadyRegisteredInjectionException } from '@exceptions/token-alre
 import { DependencyRepository } from '@repositories/dependency.repository'
 import { DependencyContainer, DependencyRegister } from '@services/dependency.container'
 import { beforeEach, describe, expect, test, vi } from 'vitest'
-import { Injectable } from '@decorators/injectable.decorator'
 
 describe('Tests for registering Dependency', () => {
   let container: DependencyContainer
@@ -206,7 +206,7 @@ describe('Tests for registering Dependency', () => {
   })
 
   describe('Injectable', () => {
-    test('Simple register', () => {
+    test('Expected to register a dependency by specifying a class decorated with Injectable', () => {
       @Injectable()
       class Test { }
 
@@ -220,7 +220,7 @@ describe('Tests for registering Dependency', () => {
       expect(dependency?.useClass).toBe(Test)
     })
 
-    test('Simple register with Scope', () => {
+    test('Expected to register a dependency by specifying a class decorated with Injectable, specifying the SINGLETON scope', () => {
       @Injectable({ scope: Scope.SINGLETON })
       class Test { }
 
@@ -234,7 +234,7 @@ describe('Tests for registering Dependency', () => {
       expect(dependency?.useClass).toBe(Test)
     })
 
-    test('Simple register with another Token', () => {
+    test('Expected to register a dependency by specifying a class decorated with Injectable and providing a custom Token', () => {
       @Injectable({ token: 'TOKEN' })
       class Test { }
 
@@ -266,11 +266,11 @@ describe('Tests for registering Dependency', () => {
       expect(dependency?.useClass).toBe(Test)
     })
 
-    test('Simple register', () => {
+    test('Expected to register a dependency by specifying a class decorated with Injectable, providing a custom Token and a SINGLETON Scope', () => {
       @Injectable({ token: 'TOKEN', scope: Scope.SINGLETON })
       class Test { }
 
-      container.register([{ token: 'ANOTHER_TOKEN', useClass: Test }])
+      container.register([{ token: 'ANOTHER_TOKEN', useClass: Test, scope: Scope.REQUEST }])
 
       expect(container.getDependency(Test)).toBeNull()
       expect(container.getDependency('TOKEN')).toBeNull()
@@ -279,7 +279,7 @@ describe('Tests for registering Dependency', () => {
 
       expect(dependency).toBeDefined()
       expect(dependency?.token).toBe('ANOTHER_TOKEN')
-      expect(dependency?.scope).toBe(Scope.SINGLETON)
+      expect(dependency?.scope).toBe(Scope.REQUEST)
       expect(dependency?.useClass).toBe(Test)
     })
   })

@@ -1,9 +1,9 @@
 import { Injectable, getInjectableDependency } from '@decorators/injectable.decorator'
-import { describe, expect, test } from 'vitest'
 import { Scope } from '@enums/scope'
+import { describe, expect, test } from 'vitest'
 
 describe('Decorator Injectable', () => {
-  test('Simple test', () => {
+  test('It is expected that dependency definitions will be applied using only the class', () => {
     @Injectable()
     class SimpleTestInjectable { }
 
@@ -14,7 +14,7 @@ describe('Decorator Injectable', () => {
     expect(metadata.scope).toBeUndefined()
   })
 
-  test('Simple test', () => {
+  test('Expected to apply the dependency definitions by defining a SINGLETON Scope', () => {
     @Injectable({ scope: Scope.SINGLETON })
     class TestWithScope { }
 
@@ -25,7 +25,7 @@ describe('Decorator Injectable', () => {
     expect(metadata.scope).toBe(Scope.SINGLETON)
   })
 
-  test('Simple test 2', () => {
+  test('Expected to apply the dependency definitions by defining a custom token', () => {
     @Injectable({ token: 'TOKEN' })
     class TestWithStringToken { }
 
@@ -36,7 +36,7 @@ describe('Decorator Injectable', () => {
     expect(metadata.scope).toBeUndefined()
   })
 
-  test('Complete test 2', () => {
+  test('The expected outcome is to apply the dependency definitions by defining a custom Token and a SINGLETON Scope', () => {
     @Injectable({ token: 'TOKEN', scope: Scope.SINGLETON })
     class CompleteTestWithStringTokenAndScope { }
 

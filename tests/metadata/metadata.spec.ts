@@ -11,14 +11,14 @@ describe('MetadataRepository', () => {
   class TestClass { }
   class OtherClass { }
 
-  describe('Class Metadata', () => {
-    it('deve registrar e recuperar metadados de classe', () => {
+  describe('Tests Metadata', () => {
+    it('Expected to register and retrieve class metadata', () => {
       metadata.setClassMetadata(TestClass, 'role', 'service')
 
       expect(metadata.getClassMetadata(TestClass, 'role')).toEqual('service')
     })
 
-    it('deve sobrescrever um valor existente', () => {
+    it('Expected to overwrite an existing value', () => {
       metadata.setClassMetadata(TestClass, 'role', 'service')
 
       expect(metadata.getClassMetadata(TestClass, 'role')).toEqual('service')
@@ -28,7 +28,7 @@ describe('MetadataRepository', () => {
       expect(metadata.getClassMetadata(TestClass, 'role')).toBe('controller')
     })
 
-    it('deve manter metadados isolados por classe', () => {
+    it('It is expected that metadata will be kept isolated by class', () => {
       metadata.setClassMetadata(TestClass, 'role', 'controller')
       metadata.setClassMetadata(OtherClass, 'role', 'repository')
 
@@ -38,13 +38,13 @@ describe('MetadataRepository', () => {
   })
 
   describe('Property Metadata', () => {
-    it('deve registrar e recuperar metadados de propriedade', () => {
+    it('Expected to register and retrieve proprietary metadata', () => {
       metadata.setPropertyMetadata(TestClass, 'name', 'required', true)
 
       expect(metadata.getPropertyMetadata(TestClass, 'name', 'required')).toEqual(true)
     })
 
-    it('deve registrar múltiplos metadados na mesma propriedade', () => {
+    it('Expected to register multiple metadata items on the same property', () => {
       metadata.setPropertyMetadata(TestClass, 'name', 'format', 'string')
       metadata.setPropertyMetadata(TestClass, 'name', 'required', true)
 
@@ -52,19 +52,19 @@ describe('MetadataRepository', () => {
       expect(metadata.getPropertyMetadata(TestClass, 'name', 'required')).toEqual(true)
     })
 
-    it('deve retornar objeto vazio para propriedade sem metadados', () => {
+    it('Expected to return an empty object for a property without metadata', () => {
       expect(metadata.getPropertyMetadata(OtherClass, 'miss', 'invalid')).toBeUndefined()
     })
   })
 
   describe('Method Metadata', () => {
-    it('deve registrar e recuperar metadados de método', () => {
+    it('Expected to register and retrieve method metadata', () => {
       metadata.setMethodMetadata(TestClass, 'save', 'httpMethod', 'POST')
 
       expect(metadata.getMethodMetadata(TestClass, 'save', 'httpMethod')).toEqual('POST')
     })
 
-    it('deve armazenar múltiplos metadados para o mesmo método', () => {
+    it('Expected to store multiple metadata for the same method', () => {
       metadata.setMethodMetadata(TestClass, 'save', 'httpMethod', 'POST')
       metadata.setMethodMetadata(TestClass, 'save', 'path', '/items')
 
@@ -72,19 +72,19 @@ describe('MetadataRepository', () => {
       expect(metadata.getMethodMetadata(TestClass, 'save', 'path')).toEqual('/items')
     })
 
-    it('deve retornar objeto vazio para método sem metadados', () => {
+    it('Expected to return an empty object for a method without metadata', () => {
       expect(metadata.getMethodMetadata(TestClass, 'miss', 'unknown')).toBeUndefined()
     })
   })
 
   describe('Parameter Metadata', () => {
-    it('deve registrar e recuperar metadados de parâmetro', () => {
+    it('Expected to register and retrieve parameter metadata', () => {
       metadata.setParameterMetadata(TestClass, 'update', 0, 'type', 'string')
 
       expect(metadata.getParameterMetadata(TestClass, 'update', 0, 'type')).toEqual('string')
     })
 
-    it('deve registrar múltiplos metadados no mesmo parâmetro', () => {
+    it('Multiple metadata entries are expected for the same parameter', () => {
       metadata.setParameterMetadata(TestClass, 'update', 0, 'type', 'string')
       metadata.setParameterMetadata(TestClass, 'update', 0, 'required', true)
 
@@ -92,7 +92,7 @@ describe('MetadataRepository', () => {
       expect(metadata.getParameterMetadata(TestClass, 'update', 0, 'required')).toEqual(true)
     })
 
-    it('deve permitir registrar metadados em parâmetros diferentes', () => {
+    it('It is expected to allow recording metadata in different parameters', () => {
       metadata.setParameterMetadata(TestClass, 'update', 0, 'type', 'string')
       metadata.setParameterMetadata(TestClass, 'update', 0, 'required', true)
       metadata.setParameterMetadata(TestClass, 'update', 1, 'description', 'second param')
@@ -102,13 +102,13 @@ describe('MetadataRepository', () => {
       expect(metadata.getParameterMetadata(TestClass, 'update', 1, 'description')).toEqual('second param')
     })
 
-    it('deve retornar objeto vazio para método sem metadados de parâmetros', () => {
+    it('Expected to return an empty object for a method without parameter metadata', () => {
       expect(metadata.getParameterMetadata(OtherClass, 'method', 0, 'miss')).toBeUndefined()
     })
   })
 
   describe('WeakMap isolation', () => {
-    it('garante que cada classe recebe seu próprio registro no WeakMap', () => {
+    it('The goal is to ensure that each class receives its own record', () => {
       metadata.setClassMetadata(TestClass, 'a', 1)
       metadata.setClassMetadata(OtherClass, 'a', 999)
 
@@ -116,7 +116,7 @@ describe('MetadataRepository', () => {
       expect(metadata.getClassMetadata(OtherClass, 'a')).toEqual(999)
     })
 
-    it('não vaza dados entre classe, propriedades, métodos e parâmetros', () => {
+    it('It is expected that no data will leak between classes, properties, methods, and parameters', () => {
       metadata.setClassMetadata(TestClass, 'key', 'class_value')
       metadata.setPropertyMetadata(TestClass, 'prop', 'key', 'prop_value')
       metadata.setMethodMetadata(TestClass, 'method', 'key', 'method_value')
