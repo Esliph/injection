@@ -131,7 +131,7 @@ export class DependencyContainer {
   protected extractDataFromObjectDependencyRegister(dependency: DependencyRegisterObject) {
     const data = { ...dependency }
 
-    if (data.useClass === undefined) {
+    if (data.useClass === undefined || !isClass(data.useClass)) {
       return data
     }
 
