@@ -1,8 +1,9 @@
-import { Decorator } from '@esliph/decorator'
-import { Scope } from '@enums/scope'
-import { Metadata } from '@metadata/global'
-import { ClassConstructor } from '@utils/types'
+import 'reflect-metadata'
+
 import { DependencyToken } from '@common/types/dependency'
+import { Scope } from '@enums/scope'
+import { Decorator } from '@esliph/decorator'
+import { ClassConstructor } from '@utils/types'
 
 const INJECTABLE_DEPENDENCY_KEY = 'injectable:dependency'
 
@@ -18,9 +19,9 @@ export type InjectableProps = {
 }
 
 export const Injectable = ({ token, scope }: InjectableProps = {}) => Decorator.Class((target) => {
-  Metadata.setClassMetadata(target, INJECTABLE_DEPENDENCY_KEY, { token: token ?? target, scope, useClass: target })
+  Reflect.defineMetadata(INJECTABLE_DEPENDENCY_KEY, { token: token ?? target, scope, useClass: target }, target)
 })
 
 export function getInjectableDependency(target: ClassConstructor) {
-  return Metadata.getClassMetadata(target, INJECTABLE_DEPENDENCY_KEY) as InjectableMetadata || null
+  return Reflect.getMetadata(INJECTABLE_DEPENDENCY_KEY, target.prototype) as InjectableMetadata || null
 }
