@@ -2,7 +2,6 @@ import 'reflect-metadata'
 
 import { DependencyToken } from '@common/types/dependency'
 import { Decorator } from '@esliph/decorator'
-import { MetadataKey } from '@metadata/types'
 import { ClassConstructor } from '@utils/types'
 
 const INJECT_PARAM_KEY = 'inject:params'
@@ -19,7 +18,7 @@ export const Inject = (token: DependencyToken) => Decorator.Generic({
   property: (target, propertyKey) => {
     const constructor = target.constructor
 
-    const existing = Reflect.getMetadata(INJECT_PROPERTIES_KEY, constructor) as Record<MetadataKey, DependencyToken> ?? {}
+    const existing = Reflect.getMetadata(INJECT_PROPERTIES_KEY, constructor) as Record<string | symbol, DependencyToken> ?? {}
 
     existing[propertyKey] = token
 
@@ -30,6 +29,6 @@ export const Inject = (token: DependencyToken) => Decorator.Generic({
 export function getInjectTokens(target: ClassConstructor) {
   return {
     constructorParams: (Reflect.getMetadata(INJECT_PARAM_KEY, target) ?? []) as DependencyToken[],
-    properties: (Reflect.getMetadata(INJECT_PROPERTIES_KEY, target) ?? {}) as Record<MetadataKey, DependencyToken>,
+    properties: (Reflect.getMetadata(INJECT_PROPERTIES_KEY, target) ?? {}) as Record<string | symbol, DependencyToken>,
   }
 }
