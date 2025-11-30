@@ -18,10 +18,10 @@ export type InjectableProps = {
   scope?: Scope
 }
 
-export const Injectable = ({ token, scope }: InjectableProps = {}) => Decorator.Class((target) => {
+export const Injectable = ({ token, scope }: InjectableProps = {}) => Decorator.Class(target => {
   Reflect.defineMetadata(INJECTABLE_DEPENDENCY_KEY, { token: token ?? target, scope, useClass: target }, target)
 })
 
 export function getInjectableDependency(target: ClassConstructor) {
-  return Reflect.getMetadata(INJECTABLE_DEPENDENCY_KEY, target.prototype) as InjectableMetadata || null
+  return Reflect.getMetadata(INJECTABLE_DEPENDENCY_KEY, target) as InjectableMetadata || null
 }

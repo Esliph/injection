@@ -17,17 +17,19 @@ export const Inject = (token: DependencyToken) => Decorator.Generic({
     Reflect.defineMetadata(INJECT_PARAM_KEY, existing, target)
   },
   property: (target, propertyKey) => {
-    const existing = Reflect.getMetadata(INJECT_PROPERTIES_KEY, target) as Record<MetadataKey, DependencyToken> ?? {}
+    const constructor = target.constructor
+
+    const existing = Reflect.getMetadata(INJECT_PROPERTIES_KEY, constructor) as Record<MetadataKey, DependencyToken> ?? {}
 
     existing[propertyKey] = token
 
-    Reflect.defineMetadata(INJECT_PROPERTIES_KEY, existing, target)
+    Reflect.defineMetadata(INJECT_PROPERTIES_KEY, existing, constructor)
   },
 })
 
 export function getInjectTokens(target: ClassConstructor) {
   return {
-    constructorParams: (Reflect.getMetadata(INJECT_PARAM_KEY, target.prototype) ?? []) as DependencyToken[],
-    properties: (Reflect.getMetadata(INJECT_PROPERTIES_KEY, target.prototype) ?? {}) as Record<MetadataKey, DependencyToken>,
+    constructorParams: (Reflect.getMetadata(INJECT_PARAM_KEY, target) ?? []) as DependencyToken[],
+    properties: (Reflect.getMetadata(INJECT_PROPERTIES_KEY, target) ?? {}) as Record<MetadataKey, DependencyToken>,
   }
 }
