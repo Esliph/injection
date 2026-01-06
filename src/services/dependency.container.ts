@@ -1,5 +1,5 @@
 import { Dependency, DependencyCreation, DependencyToken } from '@common/types/dependency'
-import { getInjectTokens } from '@decorators/inject.decorator'
+import { getInjectTokensParams, getInjectTokensProperties } from '@decorators/inject.decorator'
 import { getInjectableDependency } from '@decorators/injectable.decorator'
 import { Scope } from '@enums/scope'
 import { ClassConstructorInvalidInjectionException } from '@exceptions/class-constructor-invalid.exception'
@@ -54,7 +54,7 @@ export class DependencyContainer {
       throw new ClassConstructorInvalidInjectionException(`A "class constructor" was expected, but a "${typeof classConstructor}" was received`)
     }
 
-    const { constructorParams, properties } = getInjectTokens(classConstructor)
+    const constructorParams = getInjectTokensParams(classConstructor)
 
     const params = []
 
@@ -68,6 +68,8 @@ export class DependencyContainer {
     }
 
     const instance = new classConstructor(...params) as InstanceType<TClass>
+
+    const properties = getInjectTokensProperties(classConstructor)
 
     for (const prop in properties) {
       instance[prop] = this.resolveToken(properties[prop])
