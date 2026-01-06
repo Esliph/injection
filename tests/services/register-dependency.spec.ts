@@ -1,3 +1,5 @@
+import { beforeEach, describe, expect, test, vi } from 'vitest'
+
 import { Injectable } from '@decorators/injectable.decorator'
 import { Scope } from '@enums/scope'
 import { InjectionErrorCode } from '@exceptions/code-errors'
@@ -9,7 +11,6 @@ import { InvalidTokenInjectionException } from '@exceptions/invalid-token.except
 import { TokenAlreadyRegisteredInjectionException } from '@exceptions/token-already-registered'
 import { DependencyRepository } from '@repositories/dependency.repository'
 import { DependencyContainer, DependencyRegister } from '@services/dependency.container'
-import { beforeEach, describe, expect, test, vi } from 'vitest'
 
 describe('Tests for registering Dependency', () => {
   let container: DependencyContainer

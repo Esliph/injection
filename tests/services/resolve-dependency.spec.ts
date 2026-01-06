@@ -1,3 +1,5 @@
+import { beforeEach, describe, expect, test } from 'vitest'
+
 import { Inject } from '@decorators/inject.decorator'
 import { Injectable } from '@decorators/injectable.decorator'
 import { Scope } from '@enums/scope'
@@ -5,7 +7,6 @@ import { ClassConstructorInvalidInjectionException } from '@exceptions/class-con
 import { InjectionErrorCode } from '@exceptions/code-errors'
 import { TokenNotRegisteredInjectionException } from '@exceptions/token-not-registered'
 import { DependencyContainer } from '@services/dependency.container'
-import { beforeEach, describe, expect, test } from 'vitest'
 
 describe('Resolve dependency', () => {
   let container: DependencyContainer
@@ -40,10 +41,11 @@ describe('Resolve dependency', () => {
   test('An instance is expected to be created by injecting a dependency via a constructor parameter using a value and a non-token pattern', () => {
     class Service { }
 
+    @Inject(1, Service)
     class TestUseFactoryWithStringTokenParam {
       constructor(
         public param: any,
-        @Inject(Service) public service: Service,
+        public service: Service,
       ) { }
     }
 
@@ -56,9 +58,10 @@ describe('Resolve dependency', () => {
   })
 
   test('An exception is expected to be thrown if the token mapped in the class is not registered in the container', () => {
+    @Inject(0, 'TOKEN_NOT_REGISTERED')
     class TestWithoutToken {
       constructor(
-        @Inject('TOKEN_NOT_REGISTERED') public param: number
+        public param: number
       ) { }
     }
 
@@ -81,9 +84,10 @@ describe('Resolve dependency', () => {
 
   describe('Tests to resolve instances with dependency registration using useValue', () => {
     test('An instance is expected to be created by injecting a dependency via a constructor parameter using a value', () => {
+      @Inject(0, 'TOKEN_PARAM')
       class TestUseValueWithStringTokenParam {
         constructor(
-          @Inject('TOKEN_PARAM') public param: number
+          public param: number
         ) { }
       }
 
@@ -119,13 +123,15 @@ describe('Resolve dependency', () => {
     })
 
     test('It is expected that an instance will be created by injecting multiple dependencies into parameters and properties', () => {
+      @Inject(0, 'TOKEN_PARAM_A')
+      @Inject(1, 'TOKEN_PARAM_B')
       class TestUseValueWithStringTokenProp {
         @Inject('TOKEN_PROP_A') propA: number
         @Inject('TOKEN_PROP_B') propB: 'string'
 
         constructor(
-          @Inject('TOKEN_PARAM_A') public paramA: number,
-          @Inject('TOKEN_PARAM_B') public paramB: string
+          public paramA: number,
+          public paramB: string
         ) { }
       }
 
@@ -160,9 +166,10 @@ describe('Resolve dependency', () => {
 
   describe('Tests to resolve instances with dependency registration using useFactory', () => {
     test('An instance is expected to be created by injecting a dependency via a constructor parameter using a value', () => {
+      @Inject(0, 'TOKEN_PARAM')
       class TestUseFactoryWithStringTokenParam {
         constructor(
-          @Inject('TOKEN_PARAM') public param: number
+          public param: number
         ) { }
       }
 
@@ -198,13 +205,15 @@ describe('Resolve dependency', () => {
     })
 
     test('It is expected that an instance will be created by injecting multiple dependencies into parameters and properties', () => {
+      @Inject(0, 'TOKEN_PARAM_A')
+      @Inject(1, 'TOKEN_PARAM_B')
       class TestUseFactoryWithStringTokenProp {
         @Inject('TOKEN_PROP_A') propA: number
         @Inject('TOKEN_PROP_B') propB: 'string'
 
         constructor(
-          @Inject('TOKEN_PARAM_A') public paramA: number,
-          @Inject('TOKEN_PARAM_B') public paramB: string
+          public paramA: number,
+          public paramB: string
         ) { }
       }
 
@@ -241,9 +250,10 @@ describe('Resolve dependency', () => {
     test('An instance is expected to be created by injecting a dependency via a constructor parameter using a value', () => {
       class Service { }
 
+      @Inject(0, 'TOKEN_PARAM')
       class TestUseFactoryWithStringTokenParam {
         constructor(
-          @Inject('TOKEN_PARAM') public param: Service
+          public param: Service
         ) { }
       }
 
@@ -263,10 +273,11 @@ describe('Resolve dependency', () => {
     test('An instance is expected to be created by injecting a dependency via a constructor parameter using a value and a non-token pattern', () => {
       class Service { }
 
+      @Inject(1, 'TOKEN_PARAM')
       class TestUseFactoryWithStringTokenParam {
         constructor(
           public param: any,
-          @Inject('TOKEN_PARAM') public service: Service,
+          public service: Service,
         ) { }
       }
 
@@ -308,13 +319,15 @@ describe('Resolve dependency', () => {
       class ServiceA { }
       class ServiceB { }
 
+      @Inject(0, 'TOKEN_PARAM_A')
+      @Inject(1, 'TOKEN_PARAM_B')
       class TestUseFactoryWithStringTokenProp {
         @Inject('TOKEN_PROP_A') propA: ServiceA
         @Inject('TOKEN_PROP_B') propB: ServiceB
 
         constructor(
-          @Inject('TOKEN_PARAM_A') public paramA: ServiceA,
-          @Inject('TOKEN_PARAM_B') public paramB: ServiceB
+          public paramA: ServiceA,
+          public paramB: ServiceB
         ) { }
       }
 
@@ -349,13 +362,17 @@ describe('Resolve dependency', () => {
     test('Expect to create an instance using dependency alignment', () => {
       class ServiceA { }
 
+      @Inject(0, ServiceA)
       class ServiceB {
-        constructor(@Inject(ServiceA) public serviceA: ServiceA) { }
+        constructor(
+          public serviceA: ServiceA
+        ) { }
       }
 
+      @Inject(0, ServiceB)
       class TestUseFactoryWithStringTokenProp {
         constructor(
-          @Inject(ServiceB) public service: ServiceB
+          public service: ServiceB
         ) { }
       }
 
@@ -459,11 +476,12 @@ describe('Resolve dependency', () => {
 
       container.register([Service])
 
+      @Inject(0, Service)
       class ABC {
         @Inject(Service) prop: Service
 
         constructor(
-          @Inject(Service) public param: Service
+          public param: Service
         ) { }
       }
 

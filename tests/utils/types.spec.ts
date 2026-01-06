@@ -1,5 +1,6 @@
-import { isClass } from '@utils/types'
 import { describe, expect, test } from 'vitest'
+
+import { isClass } from '@utils/types'
 
 describe('Tests to validate useful typing functions', () => {
   test('isClass is expected to return false for any data type that is not a class', () => {

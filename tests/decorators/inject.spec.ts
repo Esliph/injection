@@ -1,8 +1,11 @@
-import { getInjectTokens, Inject } from '@decorators/inject.decorator'
 import { describe, expect, test } from 'vitest'
+
+import { getInjectTokensParams, getInjectTokensProperties, Inject } from '@decorators/inject.decorator'
 
 describe('Decorator Inject', () => {
   test('It is expected that tokens will be stored as strings in the parameters and properties', () => {
+    @Inject(0, 'PARAM_TOKEN_A')
+    @Inject(1, 'PARAM_TOKEN_B')
     class TestWithStringToken {
 
       @Inject('PROP_TOKEN_A')
@@ -10,10 +13,16 @@ describe('Decorator Inject', () => {
 
       private propValueB: any
 
-      constructor(@Inject('PARAM_TOKEN_A') paramTokenA: any, @Inject('PARAM_TOKEN_B') paramTokenB: any) { }
+      constructor(
+        paramTokenA: any,
+        paramTokenB: any
+      ) { }
     }
 
-    const { properties, constructorParams } = getInjectTokens(TestWithStringToken)
+    new TestWithStringToken(1, 2)
+
+    const constructorParams = getInjectTokensParams(TestWithStringToken)
+    const properties = getInjectTokensProperties(TestWithStringToken)
 
     expect(properties).toEqual({ propTokenA: 'PROP_TOKEN_A' })
     expect(constructorParams).toEqual(['PARAM_TOKEN_A', 'PARAM_TOKEN_B'])
@@ -24,27 +33,40 @@ describe('Decorator Inject', () => {
     class TestServiceB { }
     class TestServiceC { }
 
+    @Inject(0, TestServiceB)
+    @Inject(1, TestServiceC)
     class TestWithClassToken {
 
       @Inject(TestServiceA)
       private propTokenA: any
 
-      constructor(@Inject(TestServiceB) paramTokenB: any, @Inject(TestServiceC) paramTokenC: any) { }
+      constructor(
+        paramTokenB: any,
+        paramTokenC: any
+      ) { }
     }
 
-    const { properties, constructorParams } = getInjectTokens(TestWithClassToken)
+    new TestWithClassToken(1, 2)
+
+    const constructorParams = getInjectTokensParams(TestWithClassToken)
+    const properties = getInjectTokensProperties(TestWithClassToken)
 
     expect(properties).toEqual({ propTokenA: TestServiceA })
     expect(constructorParams).toEqual([TestServiceB, TestServiceC])
   })
 
   test('Expected to return an undefined element in the parameter array when no token is specified', () => {
+    @Inject(0, 'PARAM_TOKEN_A')
+    @Inject(2, 'PARAM_TOKEN_C')
     class TestTokenUndefined {
 
-      constructor(@Inject('PARAM_TOKEN_A') paramTokenA: any, paramB: any, @Inject('PARAM_TOKEN_C') paramTokenC: any, paramD: any) { }
+      constructor(
+        paramTokenA: any, paramB: any,
+        paramTokenC: any, paramD: any
+      ) { }
     }
 
-    const { constructorParams } = getInjectTokens(TestTokenUndefined)
+    const constructorParams = getInjectTokensParams(TestTokenUndefined)
 
     expect(constructorParams).toEqual(['PARAM_TOKEN_A', undefined, 'PARAM_TOKEN_C'])
   })
@@ -55,7 +77,8 @@ describe('Decorator Inject', () => {
       constructor(paramA: any, paramB: any, paramC: any) { }
     }
 
-    const { constructorParams, properties } = getInjectTokens(TestWithoutToken)
+    const constructorParams = getInjectTokensParams(TestWithoutToken)
+    const properties = getInjectTokensProperties(TestWithoutToken)
 
     expect(properties).toEqual({})
     expect(constructorParams).toEqual([])

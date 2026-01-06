@@ -1,7 +1,8 @@
+import { describe, expect, test } from 'vitest'
+
 import { InjectionErrorCode } from '@exceptions/code-errors'
 import { InvalidTokenInjectionException } from '@exceptions/invalid-token.exception'
 import { assertValidToken, isValidToken } from '@utils/token'
-import { describe, expect, test } from 'vitest'
 
 describe('Tests to validate useful Token functions', () => {
   test('isValidToken is expected to return false for any data type that is not a class or string', () => {

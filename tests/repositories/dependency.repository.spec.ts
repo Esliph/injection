@@ -1,7 +1,8 @@
+import { beforeEach, describe, expect, test } from 'vitest'
+
 import { Dependency } from '@common/types/dependency'
 import { Scope } from '@enums/scope'
 import { DependencyRepository } from '@repositories/dependency.repository'
-import { beforeEach, describe, expect, test } from 'vitest'
 
 describe('Dependency Repository Tests', () => {
   let repository: DependencyRepository

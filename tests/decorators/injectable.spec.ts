@@ -1,6 +1,7 @@
+import { describe, expect, test } from 'vitest'
+
 import { Injectable, getInjectableDependency } from '@decorators/injectable.decorator'
 import { Scope } from '@enums/scope'
-import { describe, expect, test } from 'vitest'
 
 describe('Decorator Injectable', () => {
   test('It is expected that dependency definitions will be applied using only the class', () => {
