@@ -7,6 +7,7 @@
   - [Container de Injeção de Dependências](#container-de-injeção-de-dependências)
     - [Definição das Dependências](#definição-das-dependências)
     - [Injetando dependências em instâncias](#injetando-dependências-em-instâncias)
+    - [Injetando dependências em parâmetros de métodos](#injetando-dependências-em-parâmetros-de-métodos)
   - [Decorators](#decorators)
     - [`@Inject(token)`](#injecttoken)
     - [`@Injectable(token)`](#injectabletoken)
@@ -109,7 +110,7 @@ container.register([{ token: 'ANOTHER_TOKEN', useClass: MyService, scope: Scope.
 
 ### Injetando dependências em instâncias
 
-O método `resolve` instancia classes e injeta dependências registradas no container. Segue os exemplos de uso
+O método `resolve` instancia classes e injeta dependências registradas no container. Segue os exemplos de uso:
 
 - **Resolver uma classe direta**: ao chamar `container.resolve(MyClass)` o container instancia `MyClass` sem necessidade de registro prévio quando o token é a própria classe.
 
@@ -205,6 +206,109 @@ container.resolve(DB)
 - **Erros/validações relevantes durante `resolve`**:
   - `TokenNotRegisteredInjectionException` (`TOKEN_NOT_REGISTERED`): quando algum token usado em `@Inject` não foi registrado no container.
   - `ClassConstructorInvalidInjectionException` (`CLASS_CONSTRUCTOR_INVALID`): quando `resolve` é chamado com um token que não foi registrado e que não é uma classe válida (ex.: uma string não registrada).
+
+### Injetando dependências em parâmetros de métodos
+
+O container também permite chamar métodos de instâncias preenchendo parâmetros anotados com `@Inject` via o método `invoke`.
+
+Uso básico:
+
+```ts
+// assinatura
+container.invoke(instance, methodReference, args?)
+```
+
+Exemplos práticos:
+
+1. Injetando `useValue`:
+
+```ts
+class Test {
+  @Inject(0, 'TOKEN')
+  method(param: number) {
+    return param
+  }
+}
+
+container.register([{ token: 'TOKEN', useValue: 42 }])
+
+const instance = new Test()
+
+const result = container.invoke(instance, instance.method)
+// result === 42
+```
+
+2. Injetando `useFactory`:
+
+```ts
+container.register([{ token: 'TOKEN', useFactory: () => 7 }])
+// ao invocar, o parâmetro decorado recebe 7
+```
+
+3. Injetando `useClass` (instância):
+
+```ts
+class Service {}
+class Test {
+  @Inject(0, 'TOKEN')
+  method(service: Service) {
+    return service
+  }
+}
+
+container.register([{ token: 'TOKEN', useClass: Service }])
+
+const instance = new Test()
+
+container.invoke(instance, instance.method)
+// retorna uma instância de Service
+```
+
+4. Com parâmetros não decorados e preservação de args:
+
+```ts
+class Test {
+  @Inject(1, 'TOKEN')
+  method(a: number, b: number) {
+    return { a, b }
+  }
+}
+
+container.register([{ token: 'TOKEN', useValue: 5 }])
+
+const instance = new Test()
+
+container.invoke(instance, instance.method, [10])
+// => { a: 10, b: 5 }
+
+container.invoke(instance, instance.method, [undefined])
+// => { a: null, b: 5 }  (undefined explícito vira null)
+
+container.invoke(instance, instance.method)
+// => { a: null, b: 5 }  (índice 0 não decorado, vira null quando existe parâmetro decorado)
+```
+
+5. Decorated overrides provided arg:
+
+```ts
+class Service {}
+
+class Test {
+  @Inject(0, 'TOKEN')
+  method(service: Service) {
+    return service
+  }
+}
+
+container.register([{ token: 'TOKEN', useClass: Service }])
+
+const instance = new Test()
+
+container.invoke(instance, instance.method, [null])
+// o valor injetado substitui o arg fornecido; retorna instancia de Service
+```
+
+Observação final: quando um método não possui parâmetros decorados e é invocado sem argumentos via `invoke`, os parâmetros permanecem `undefined` (ex.: `method(a) { return a }` retornará `undefined`).
 
 ## Decorators
 
