@@ -49,21 +49,35 @@ export class DependencyContainer {
     return this.resolveClass(token as ClassConstructor)
   }
 
+  invoke<T extends object, F extends (...args: any[]) => any>(instance: T, originalMethod: F, args: any[] = []): ReturnType<F> {
+    const paramToken = getInjectTokensParams(instance.constructor.prototype, originalMethod.name)
+
+    for (let i = 0; i < paramToken.length; i++) {
+      if (paramToken[i] !== undefined) {
+        args[i] = this.resolveToken(paramToken[i])
+      } else if (args[i] === undefined) {
+        args[i] = null
+      }
+    }
+
+    return originalMethod.apply(instance, args)
+  }
+
   protected resolveClass<TClass extends ClassConstructor>(classConstructor: TClass) {
     if (!isClass(classConstructor)) {
       throw new ClassConstructorInvalidInjectionException(`A "class constructor" was expected, but a "${typeof classConstructor}" was received`)
     }
 
-    const constructorParams = getInjectTokensParams(classConstructor)
+    const paramToken = getInjectTokensParams(classConstructor)
 
     const params = []
 
-    for (let i = 0; i < constructorParams.length; i++) {
-      if (constructorParams[i] === undefined) {
+    for (let i = 0; i < paramToken.length; i++) {
+      if (paramToken[i] === undefined) {
         params[i] = null
       }
       else {
-        params[i] = this.resolveToken(constructorParams[i])
+        params[i] = this.resolveToken(paramToken[i])
       }
     }
 
