@@ -83,4 +83,68 @@ describe('Decorator Inject', () => {
     expect(properties).toEqual({})
     expect(constructorParams).toEqual([])
   })
+
+  test('Method parameter tokens and property tokens are written only after instance initialization', () => {
+    class TestDelayedInit {
+
+      @Inject('PROP_LATE')
+      propLate: any
+
+      @Inject(0, 'PARAM_LATE')
+      method(p: any) { }
+    }
+
+    expect(getInjectTokensProperties(TestDelayedInit)).toEqual({})
+    expect(getInjectTokensParams(TestDelayedInit, 'method')).toEqual([])
+
+    new TestDelayedInit()
+
+    expect(getInjectTokensProperties(TestDelayedInit)).toEqual({ propLate: 'PROP_LATE' })
+    expect(getInjectTokensParams(TestDelayedInit, 'method')).toEqual(['PARAM_LATE'])
+  })
+
+  test('Method parameters support sparse indices (undefined slots preserved)', () => {
+    class TestSparse {
+
+      @Inject(2, 'TWO')
+      method(a: any, b: any, c: any) { }
+    }
+
+    new TestSparse()
+
+    expect(getInjectTokensParams(TestSparse, 'method')).toEqual([undefined, undefined, 'TWO'])
+  })
+
+  test('Supports symbol property tokens', () => {
+    const SYM = Symbol('sym')
+
+    class TestSymbolProp {
+
+      @Inject('SYM_TOKEN')
+      [SYM]: any
+    }
+
+    new TestSymbolProp()
+
+    const props = getInjectTokensProperties(TestSymbolProp)
+
+    expect(props[SYM]).toBe('SYM_TOKEN')
+  })
+
+  test('Different methods maintain separate token arrays', () => {
+    class TestMultiMethods {
+
+      @Inject(0, 'A0')
+      @Inject(2, 'A2')
+      methodA(a: any, b: any) { }
+
+      @Inject(1, 'B1')
+      methodB(x: any, y: any) { }
+    }
+
+    new TestMultiMethods()
+
+    expect(getInjectTokensParams(TestMultiMethods, 'methodA')).toEqual(['A0', undefined, 'A2'])
+    expect(getInjectTokensParams(TestMultiMethods, 'methodB')).toEqual([undefined, 'B1'])
+  })
 })
