@@ -1,7 +1,6 @@
-import { Reflect } from '@esliph/metadata'
 
 import { DependencyToken } from '@common/types/dependency'
-import { ClassConstructor } from '@utils/types'
+import { injectField, injectParamConstructor, injectParamMethod } from '@metadata/inject.metadata'
 
 const INJECT_PARAM_CONSTRUCTOR_KEY = 'inject:params-constructor'
 const INJECT_PARAM_METHOD_KEY = 'inject:params-method'
@@ -21,7 +20,9 @@ export function Inject(argParamToken: number | DependencyToken, argToken?: Depen
           injectParamConstructor(param, token, value)
           break
         case 'method':
-          injectParamMethod(param, token, context)
+          context.addInitializer(function () {
+            injectParamMethod(param, token, (this as any).constructor, context.name)
+          })
           break
       }
     }
@@ -30,51 +31,10 @@ export function Inject(argParamToken: number | DependencyToken, argToken?: Depen
   return (_: any, context: ClassFieldDecoratorContext) => {
     switch (context.kind) {
       case 'field':
-        injectField(token, context)
+        context.addInitializer(function () {
+          injectField(token, (this as any).constructor, context.name)
+        })
         break
     }
   }
-}
-
-function injectField(token: DependencyToken, context: ClassFieldDecoratorContext) {
-  context.addInitializer(function () {
-    const existing = Reflect.getMetadata(INJECT_PROPERTIES_KEY, (this as any).constructor) as Record<string | symbol, DependencyToken> ?? {}
-
-    existing[context.name] = token
-
-    Reflect.defineMetadata(INJECT_PROPERTIES_KEY, existing, (this as any).constructor)
-  })
-}
-
-function injectParamMethod(param: number, token: DependencyToken, context: ClassMethodDecoratorContext) {
-  context.addInitializer(function () {
-    const existing = Reflect.getMetadata(INJECT_PARAM_METHOD_KEY, (this as any).constructor, context.name) as DependencyToken[] ?? []
-
-    existing[param] = token
-
-    Reflect.defineMetadata(INJECT_PARAM_METHOD_KEY, existing, (this as any).constructor, context.name)
-  })
-}
-
-function injectParamConstructor(param: number, token: DependencyToken, value: any) {
-  const tokens = Reflect.getMetadata(INJECT_PARAM_CONSTRUCTOR_KEY, value) as DependencyToken[] ?? []
-
-  tokens[param] = token
-
-  Reflect.defineMetadata(INJECT_PARAM_CONSTRUCTOR_KEY, tokens, value)
-}
-
-export function getInjectTokensParams(target: ClassConstructor): DependencyToken[]
-export function getInjectTokensParams(target: ClassConstructor, methodName: string | symbol): DependencyToken[]
-
-export function getInjectTokensParams(target: ClassConstructor, methodName?: string | symbol) {
-  if (methodName === undefined) {
-    return Reflect.getMetadata(INJECT_PARAM_CONSTRUCTOR_KEY, target) as DependencyToken[] ?? []
-  }
-
-  return Reflect.getMetadata(INJECT_PARAM_METHOD_KEY, target, methodName) as DependencyToken[] ?? []
-}
-
-export function getInjectTokensProperties(target: ClassConstructor) {
-  return Reflect.getMetadata(INJECT_PROPERTIES_KEY, target) as Record<string | symbol, DependencyToken> ?? {}
 }
