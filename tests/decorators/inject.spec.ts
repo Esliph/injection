@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'vitest'
 
-import { getInjectTokensParams, getInjectTokensProperties, Inject } from '@decorators/inject.decorator'
+import { Inject } from '@decorators/inject.decorator'
+import { getInjectTokensParams, getInjectTokensProperties } from '@metadata/inject.metadata'
 
 describe('Decorator Inject', () => {
   test('It is expected that tokens will be stored as strings in the parameters and properties', () => {
