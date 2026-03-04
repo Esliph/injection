@@ -39,7 +39,7 @@ class Operator {
 container.register([
   {
     token: 'RANDOM_NUMBER',
-    useFactory: () => Math.random(),
+    useFactory: () => Math.random,
   },
 ])
 
