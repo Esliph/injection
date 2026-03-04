@@ -70,18 +70,17 @@ Para definir uma dependência no container usa-se o método `register([token, ..
 container.register([
   {
     token: 'TOKEN_WITH_VALUE',
-    useValue: 10,
+    useValue: 10
   },
   // ou
   {
     token: 'TOKEN_WITH_FACTORY',
-    useFactory: () => 42,
+    useFactory: () => 42
   },
   // ou
   {
     token: 'TOKEN_WITH_CLASS',
-    useClass: SomeService,
-    scope: Scope.SINGLETON,
+    useClass: SomeService
   },
 ])
 ```
