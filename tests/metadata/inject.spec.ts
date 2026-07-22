@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'vitest'
 
+import { forwardRef, ForwardReference } from '@common/forward-ref'
 import {
   getInjectTokensParams,
   getInjectTokensProperties,
@@ -110,6 +111,31 @@ describe('Metadata helpers (without decorators)', () => {
     const props = getInjectTokensProperties(TestSymbolProp)
 
     expect(props[SYM]).toBe('SYM_TOKEN')
+  })
+
+  test('forward references are stored raw, without being resolved', () => {
+    class TestService { }
+
+    class TestForwardReference {
+      private propToken: any
+
+      constructor(paramToken: any) { }
+
+      method(param: any) { }
+    }
+
+    injectParamConstructor(0, forwardRef(() => TestService), TestForwardReference)
+    injectField(forwardRef(() => TestService), TestForwardReference, 'propToken')
+    injectParamMethod(0, forwardRef(() => TestService), TestForwardReference, 'method')
+
+    const [constructorParam] = getInjectTokensParams(TestForwardReference)
+    const [methodParam] = getInjectTokensParams(TestForwardReference, 'method')
+    const { propToken } = getInjectTokensProperties(TestForwardReference)
+
+    expect(constructorParam).toBeInstanceOf(ForwardReference)
+    expect(methodParam).toBeInstanceOf(ForwardReference)
+    expect(propToken).toBeInstanceOf(ForwardReference)
+    expect((constructorParam as ForwardReference).forwardRef()).toBe(TestService)
   })
 
   test('different methods maintain separate token arrays', () => {

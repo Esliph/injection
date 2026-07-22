@@ -2,7 +2,7 @@ import { describe, expect, test } from 'vitest'
 
 import { InjectionErrorCode } from '@exceptions/code-errors'
 import { InvalidTokenInjectionException } from '@exceptions/invalid-token.exception'
-import { assertValidToken, isValidToken } from '@utils/token'
+import { assertValidToken, getTokenName, isValidToken } from '@utils/token'
 
 describe('Tests to validate useful Token functions', () => {
   test('isValidToken is expected to return false for any data type that is not a class or string', () => {
@@ -68,5 +68,13 @@ describe('Tests to validate useful Token functions', () => {
   test('isValidToken is expected to return true for values that are strings', () => {
     expect(isValidToken('STRING_TOKEN')).toBe(true)
     expect(() => assertValidToken('STRING_TOKEN')).not.toThrow()
+  })
+
+  test('getTokenName is expected to return a readable name without throwing for any token', () => {
+    class Test { }
+
+    expect(getTokenName(Test)).toBe('Test')
+    expect(getTokenName('STRING_TOKEN')).toBe('STRING_TOKEN')
+    expect(getTokenName(undefined)).toBe('undefined')
   })
 })
