@@ -11,6 +11,10 @@
   - [Decorators](#decorators)
     - [`@Inject(token)`](#injecttoken)
     - [`@Injectable(token)`](#injectabletoken)
+  - [Dependências circulares](#dependências-circulares)
+    - [Ciclo de importação entre módulos: `forwardRef`](#ciclo-de-importação-entre-módulos-forwardref)
+    - [Ciclo de resolução: instância parcial](#ciclo-de-resolução-instância-parcial)
+    - [Limitações conhecidas](#limitações-conhecidas)
   - [Validações e Exceções](#validações-e-exceções)
   - [Exemplos práticos](#exemplos-práticos)
 
@@ -70,17 +74,17 @@ Para definir uma dependência no container usa-se o método `register([token, ..
 container.register([
   {
     token: 'TOKEN_WITH_VALUE',
-    useValue: 10
+    useValue: 10,
   },
   // ou
   {
     token: 'TOKEN_WITH_FACTORY',
-    useFactory: () => 42
+    useFactory: () => 42,
   },
   // ou
   {
     token: 'TOKEN_WITH_CLASS',
-    useClass: SomeService
+    useClass: SomeService,
   },
 ])
 ```
@@ -399,22 +403,101 @@ class MyService {}
 container.register([{ token: 'ANOTHER_TOKEN', useClass: MyService, scope: Scope.REQUEST }])
 ```
 
+## Dependências circulares
+
+Duas classes que dependem uma da outra esbarram em **dois problemas diferentes**, que falham de formas diferentes e têm soluções diferentes:
+
+1. **Ciclo de importação entre módulos**: no momento em que o decorator é avaliado, uma das referências de classe ainda é `undefined` (o módulo que carregou primeiro ainda não terminou de ser inicializado). A solução é `forwardRef`.
+2. **Ciclo de resolução**: mesmo com as referências corretas, `A → B → A` recursaria infinitamente. O container resolve isso expondo a **instância parcial** durante a construção.
+
+### Ciclo de importação entre módulos: `forwardRef`
+
+```ts
+// a.service.ts
+import { Inject } from '@esliph/injection'
+
+import { ServiceB } from './b.service'
+
+@Inject(0, ServiceB)
+export class ServiceA {
+  constructor(public b: ServiceB) {}
+}
+```
+
+```ts
+// b.service.ts
+import { forwardRef, Inject } from '@esliph/injection'
+
+import { ServiceA } from './a.service'
+
+export class ServiceB {
+  // sem o forwardRef, "ServiceA" aqui seria undefined
+  @Inject(forwardRef(() => ServiceA)) a: ServiceA
+}
+```
+
+`forwardRef(() => Token)` adia a leitura da referência do momento da _avaliação do decorator_ para o momento do _uso_, e é aceito em todos os pontos onde um token é aceito: parâmetro de construtor, propriedade, parâmetro de método, e também `token` e `useClass` no `register`.
+
+Quando o token de uma dependência decorada é `undefined` — o sintoma típico de um ciclo de importação sem `forwardRef` —, o container lança `CircularDependencyInjectionException` apontando o parâmetro ou a propriedade. Ele **não** injeta `null` silenciosamente.
+
+> Um parâmetro que nunca foi decorado continua recebendo `null`, como antes. A distinção entre "não decorado" e "decorado com token `undefined`" é exata.
+
+Para desembrulhar uma referência manualmente, a biblioteca exporta `resolveForwardRef(token)` (recursiva e idempotente: um token comum passa intacto) e `isForwardRef(value)`.
+
+### Ciclo de resolução: instância parcial
+
+Como o container injeta as propriedades **depois** do `new`, um ciclo em que pelo menos um dos lados usa injeção por propriedade é resolvível: a instância em construção fica visível para quem fechar o ciclo.
+
+| Ciclo                                    | Resultado                                                          |
+| ---------------------------------------- | ------------------------------------------------------------------ |
+| `A`(propriedade) ↔ `B`(propriedade)      | resolve a partir de qualquer um dos lados                          |
+| `A`(construtor) → `B`(propriedade) → `A` | resolve **se a resolução começar por `B`**                         |
+| `A`(construtor) ↔ `B`(construtor)        | `CircularDependencyInjectionException` com o caminho `A -> B -> A` |
+
+```ts
+class ServiceB {
+  @Inject(forwardRef(() => ServiceA)) a: ServiceA
+}
+
+class ServiceA {
+  @Inject(ServiceB) b: ServiceB
+}
+
+container.register([ServiceA, ServiceB])
+
+const a = container.resolve(ServiceA)
+// a.b instanceof ServiceB
+// a.b.a === a  <- mesma instância, não uma cópia
+```
+
+O ponto de entrada importa quando um dos lados injeta por construtor: resolver a partir da classe que injeta por **propriedade** funciona, porque a instância dela já existe quando o ciclo se fecha. Resolver a partir da classe que injeta por **construtor** é irresolúvel — nesse instante nenhum dos dois objetos existe —, e o container lança a exceção com o caminho do ciclo.
+
+**A instância exposta durante a construção é parcial.** Se o construtor de `B` acessar `this.a.algumaCoisaInjetada`, encontrará `undefined`: as propriedades de `A` ainda não foram preenchidas naquele momento. Use a referência apenas depois da construção completa, nos métodos.
+
+### Limitações conhecidas
+
+- **Ciclo atravessando `useFactory`**: o controle de instâncias em construção é chaveado pela classe, então uma factory que instancia manualmente escapa da detecção. Um ciclo fechado por dentro de uma `useFactory` volta a estourar a pilha.
+- **Acesso à referência dentro do construtor**: como descrito acima, a instância parcial ainda não tem as propriedades injetadas.
+- **Ciclo construtor ↔ construtor**: não é resolvido, por construção. A saída é migrar um dos lados para injeção por propriedade.
+- **Tipo de retorno da introspecção**: `getInjectTokensParams` e `getInjectTokensProperties` agora podem devolver `ForwardReference` (a metadata guarda o que foi declarado, sem desembrulhar), então o tipo de retorno passou a ser `DependencyTokenInput`. Quem precisar do token concreto aplica `resolveForwardRef`.
+
 ## Validações e Exceções
 
 Todas as exceções estendem `InjectionException` e têm o campo `code` com um valor de `InjectionErrorCode`.
 
 Principais exceções e quando são lançadas:
 
-| Exceção                                      | Código                                | Causa                                                                            |
-| -------------------------------------------- | ------------------------------------- | -------------------------------------------------------------------------------- |
-| `InvalidTokenInjectionException`             | `TOKEN_INVALID`                       | quando se tenta usar como token algo que não é `string` nem `class`              |
-| `TokenAlreadyRegisteredInjectionException`   | `TOKEN_ALREADY_REGISTERED`            | ao registrar um token já existente                                               |
-| `CreationMethodMissingInjectionException`    | `CREATION_METHOD_MISSING`             | ao registrar sem `useClass`, `useFactory` ou `useValue`                          |
-| `CreationMultipleMethodInjectionException`   | `CREATION_MULTIPLE_METHOD`            | ao informar mais de um método de criação simultaneamente                         |
-| `CreationMethodUseClassInjectionException`   | `CREATION_METHOD_USE_CLASS_INVALID`   | `useClass` não é uma classe válida                                               |
-| `CreationMethodUseFactoryInjectionException` | `CREATION_METHOD_USE_FACTORY_INVALID` | `useFactory` não é função                                                        |
-| `TokenNotRegisteredInjectionException`       | `TOKEN_NOT_REGISTERED`                | ao tentar resolver um token que não foi registrado                               |
-| `ClassConstructorInvalidInjectionException`  | `CLASS_CONSTRUCTOR_INVALID`           | ao chamar `resolve` passando algo que não é uma classe e que não está registrado |
+| Exceção                                      | Código                                | Causa                                                                                                                                       |
+| -------------------------------------------- | ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| `InvalidTokenInjectionException`             | `TOKEN_INVALID`                       | quando se tenta usar como token algo que não é `string` nem `class`                                                                         |
+| `TokenAlreadyRegisteredInjectionException`   | `TOKEN_ALREADY_REGISTERED`            | ao registrar um token já existente                                                                                                          |
+| `CreationMethodMissingInjectionException`    | `CREATION_METHOD_MISSING`             | ao registrar sem `useClass`, `useFactory` ou `useValue`                                                                                     |
+| `CreationMultipleMethodInjectionException`   | `CREATION_MULTIPLE_METHOD`            | ao informar mais de um método de criação simultaneamente                                                                                    |
+| `CreationMethodUseClassInjectionException`   | `CREATION_METHOD_USE_CLASS_INVALID`   | `useClass` não é uma classe válida                                                                                                          |
+| `CreationMethodUseFactoryInjectionException` | `CREATION_METHOD_USE_FACTORY_INVALID` | `useFactory` não é função                                                                                                                   |
+| `TokenNotRegisteredInjectionException`       | `TOKEN_NOT_REGISTERED`                | ao tentar resolver um token que não foi registrado                                                                                          |
+| `ClassConstructorInvalidInjectionException`  | `CLASS_CONSTRUCTOR_INVALID`           | ao chamar `resolve` passando algo que não é uma classe e que não está registrado                                                            |
+| `CircularDependencyInjectionException`       | `CIRCULAR_DEPENDENCY`                 | token de uma dependência decorada é `undefined` (ciclo de importação sem `forwardRef`) ou ciclo de resolução irresolúvel entre construtores |
 
 Os códigos enumerados estão em `InjectionErrorCode` e ajudam a tratar erros sem depender da string da mensagem.
 
@@ -492,13 +575,14 @@ container.resolve(DB)
 
 **Erros comuns e como reproduzi-los (para tratamento)**
 
-| Exceção                                      | Quando                                                                      |
-| -------------------------------------------- | --------------------------------------------------------------------------- |
-| `InvalidTokenInjectionException`             | usar `10`, `{}`, `[]`, `() => {}` como token                                |
-| `TokenAlreadyRegisteredInjectionException`   | registrar duas vezes a dependência com o mesmo token                        |
-| `CreationMethodMissingInjectionException`    | registrar `{ token: 'X' }` sem `use*`                                       |
-| `CreationMultipleMethodInjectionException`   | registrar `{ token: 'X', useClass: ClassA, useValue: 1 }`                   |
-| `CreationMethodUseClassInjectionException`   | informar um valor que não seja uma classe `useClass: 10`                    |
-| `CreationMethodUseFactoryInjectionException` | informar um valor que não seja uma função `useFactory: true`                |
-| `TokenNotRegisteredInjectionException`       | classe com `@Inject('MISSING')` quando `'MISSING'` não foi registrado       |
-| `ClassConstructorInvalidInjectionException`  | `container.resolve('MISSING')` quando `'MISSING'` não é um token registrado |
+| Exceção                                      | Quando                                                                                                   |
+| -------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| `InvalidTokenInjectionException`             | usar `10`, `{}`, `[]`, `() => {}` como token                                                             |
+| `TokenAlreadyRegisteredInjectionException`   | registrar duas vezes a dependência com o mesmo token                                                     |
+| `CreationMethodMissingInjectionException`    | registrar `{ token: 'X' }` sem `use*`                                                                    |
+| `CreationMultipleMethodInjectionException`   | registrar `{ token: 'X', useClass: ClassA, useValue: 1 }`                                                |
+| `CreationMethodUseClassInjectionException`   | informar um valor que não seja uma classe `useClass: 10`                                                 |
+| `CreationMethodUseFactoryInjectionException` | informar um valor que não seja uma função `useFactory: true`                                             |
+| `TokenNotRegisteredInjectionException`       | classe com `@Inject('MISSING')` quando `'MISSING'` não foi registrado                                    |
+| `ClassConstructorInvalidInjectionException`  | `container.resolve('MISSING')` quando `'MISSING'` não é um token registrado                              |
+| `CircularDependencyInjectionException`       | duas classes que se injetam mutuamente por construtor, ou import circular entre módulos sem `forwardRef` |
