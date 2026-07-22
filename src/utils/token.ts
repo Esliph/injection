@@ -2,7 +2,11 @@ import { DependencyToken } from '@common/types/dependency'
 import { InvalidTokenInjectionException } from '@exceptions/invalid-token.exception'
 import { isClass } from '@utils/types'
 
-export function getTokenName(token: DependencyToken) {
+export function getTokenName(token: DependencyToken | undefined) {
+  if (token === undefined) {
+    return 'undefined'
+  }
+
   return typeof token == 'string' ? token : token.name
 }
 

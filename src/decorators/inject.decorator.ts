@@ -1,15 +1,11 @@
 
-import { DependencyToken } from '@common/types/dependency'
+import { DependencyTokenInput } from '@common/types/dependency'
 import { injectField, injectParamConstructor, injectParamMethod } from '@metadata/inject.metadata'
 
-const INJECT_PARAM_CONSTRUCTOR_KEY = 'inject:params-constructor'
-const INJECT_PARAM_METHOD_KEY = 'inject:params-method'
-const INJECT_PROPERTIES_KEY = 'inject:properties'
+export function Inject(token: DependencyTokenInput): (value: any, context: ClassFieldDecoratorContext) => void
+export function Inject(param: number, token: DependencyTokenInput): (value: any, context: ClassDecoratorContext | ClassMethodDecoratorContext) => void
 
-export function Inject(token: DependencyToken): (value: any, context: ClassFieldDecoratorContext) => void
-export function Inject(param: number, token: DependencyToken): (value: any, context: ClassDecoratorContext | ClassMethodDecoratorContext) => void
-
-export function Inject(argParamToken: number | DependencyToken, argToken?: DependencyToken) {
+export function Inject(argParamToken: number | DependencyTokenInput, argToken?: DependencyTokenInput) {
   const param = typeof argParamToken === 'number' ? argParamToken : undefined
   const token = typeof argParamToken === 'number' ? argToken! : argParamToken
 

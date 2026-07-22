@@ -1,5 +1,7 @@
-import { Dependency, DependencyCreation, DependencyToken } from '@common/types/dependency'
+import { resolveForwardRef } from '@common/forward-ref'
+import { Dependency, DependencyCreation, DependencyCreationInput, DependencyToken, DependencyTokenInput } from '@common/types/dependency'
 import { Scope } from '@enums/scope'
+import { CircularDependencyInjectionException } from '@exceptions/circular-dependency.exception'
 import { ClassConstructorInvalidInjectionException } from '@exceptions/class-constructor-invalid.exception'
 import { CreationMethodMissingInjectionException } from '@exceptions/creation-method-missing.exception'
 import { CreationMethodUseClassInjectionException } from '@exceptions/creation-method-use-class-invalid.exception'
@@ -13,8 +15,8 @@ import { DependencyRepository } from '@repositories/dependency.repository'
 import { assertValidToken, getTokenName } from '@utils/token'
 import { ClassConstructor, isClass } from '@utils/types'
 
-export type DependencyRegisterObject = DependencyCreation & {
-  token: DependencyToken
+export type DependencyRegisterObject = DependencyCreationInput & {
+  token: DependencyTokenInput
   scope?: Scope
 }
 
@@ -23,6 +25,10 @@ export type DependencyRegister = DependencyRegisterObject | ClassConstructor
 export class DependencyContainer {
 
   protected singletonInstances = new Map<DependencyToken, any>()
+
+  protected resolutionStack: DependencyToken[] = []
+
+  protected pendingInstances = new Map<ClassConstructor, any>()
 
   constructor(
     protected repository = new DependencyRepository()
@@ -39,7 +45,9 @@ export class DependencyContainer {
     }
   }
 
-  resolve<TToken = any>(token: DependencyToken): TToken {
+  resolve<TToken = any>(tokenInput: DependencyTokenInput): TToken {
+    const token = resolveForwardRef(tokenInput)
+
     assertValidToken(token)
 
     if (this.repository.has(token)) {
@@ -53,11 +61,17 @@ export class DependencyContainer {
     const paramToken = getInjectTokensParams(instance.constructor.prototype, originalMethod.name)
 
     for (let i = 0; i < paramToken.length; i++) {
-      if (paramToken[i] !== undefined) {
-        args[i] = this.resolveToken(paramToken[i])
-      } else if (args[i] === undefined) {
-        args[i] = null
+      if (!(i in paramToken)) {
+        if (args[i] === undefined) {
+          args[i] = null
+        }
+
+        continue
       }
+
+      const token = this.assertTokenDefined(resolveForwardRef(paramToken[i]), `parameter ${i} of method "${originalMethod.name}"`)
+
+      args[i] = this.resolveToken(token)
     }
 
     return originalMethod.apply(instance, args)
@@ -68,31 +82,83 @@ export class DependencyContainer {
       throw new ClassConstructorInvalidInjectionException(`A "class constructor" was expected, but a "${typeof classConstructor}" was received`)
     }
 
+    if (this.pendingInstances.has(classConstructor)) {
+      return this.pendingInstances.get(classConstructor) as InstanceType<TClass>
+    }
+
+    this.enterResolution(classConstructor)
+
+    try {
+      const params = this.resolveConstructorParams(classConstructor)
+
+      const instance = new classConstructor(...params) as InstanceType<TClass>
+
+      this.pendingInstances.set(classConstructor, instance)
+
+      const properties = getInjectTokensProperties(classConstructor)
+
+      for (const prop in properties) {
+        const token = this.assertTokenDefined(resolveForwardRef(properties[prop]), `property "${prop}" of "${classConstructor.name}"`)
+
+        instance[prop] = this.resolveToken(token)
+      }
+
+      return instance
+    } finally {
+      this.pendingInstances.delete(classConstructor)
+      this.exitResolution()
+    }
+  }
+
+  protected resolveConstructorParams(classConstructor: ClassConstructor) {
     const paramToken = getInjectTokensParams(classConstructor)
 
     const params = []
 
     for (let i = 0; i < paramToken.length; i++) {
-      if (paramToken[i] === undefined) {
+      if (!(i in paramToken)) {
         params[i] = null
+
+        continue
       }
-      else {
-        params[i] = this.resolveToken(paramToken[i])
-      }
+
+      const token = this.assertTokenDefined(resolveForwardRef(paramToken[i]), `parameter ${i} of "${classConstructor.name}"`)
+
+      params[i] = this.resolveToken(token)
     }
 
-    const instance = new classConstructor(...params) as InstanceType<TClass>
-
-    const properties = getInjectTokensProperties(classConstructor)
-
-    for (const prop in properties) {
-      instance[prop] = this.resolveToken(properties[prop])
-    }
-
-    return instance
+    return params
   }
 
-  protected resolveToken<T = any>(token: DependencyToken) {
+  protected enterResolution(token: DependencyToken) {
+    if (this.resolutionStack.includes(token)) {
+      const path = [...this.resolutionStack, token].map(tokenOfPath => getTokenName(tokenOfPath)).join(' -> ')
+
+      throw new CircularDependencyInjectionException(
+        `Circular dependency detected: ${path}. Consider injecting one of the dependencies of the cycle via property instead of via constructor`,
+      )
+    }
+
+    this.resolutionStack.push(token)
+  }
+
+  protected exitResolution() {
+    this.resolutionStack.pop()
+  }
+
+  protected assertTokenDefined(token: DependencyToken | undefined, target: string): DependencyToken {
+    if (token === undefined) {
+      throw new CircularDependencyInjectionException(
+        `The token of ${target} is "undefined". This usually indicates a circular import between modules, use "forwardRef(() => Token)" to defer the reference`,
+      )
+    }
+
+    return token
+  }
+
+  protected resolveToken<T = any>(tokenInput: DependencyTokenInput) {
+    const token = resolveForwardRef(tokenInput)
+
     const dependency = this.repository.get(token)
 
     if (!dependency) {
@@ -128,9 +194,9 @@ export class DependencyContainer {
     const { token, scope, useClass, useFactory, useValue } = this.extractDataFromDependencyRegister(dependency)
 
     return {
-      token,
+      token: resolveForwardRef(token),
       scope: scope || Scope.REQUEST,
-      useClass,
+      useClass: useClass !== undefined ? resolveForwardRef(useClass) as ClassConstructor : undefined,
       useFactory,
       useValue,
     }
@@ -146,6 +212,10 @@ export class DependencyContainer {
 
   protected extractDataFromObjectDependencyRegister(dependency: DependencyRegisterObject) {
     const data = { ...dependency }
+
+    if (data.useClass !== undefined) {
+      data.useClass = resolveForwardRef(data.useClass) as ClassConstructor
+    }
 
     if (data.useClass === undefined || !isClass(data.useClass)) {
       return data
@@ -189,11 +259,11 @@ export class DependencyContainer {
     }
   }
 
-  hasDependency(token: DependencyToken) {
-    return this.repository.has(token)
+  hasDependency(token: DependencyTokenInput) {
+    return this.repository.has(resolveForwardRef(token))
   }
 
-  getDependency(token: DependencyToken) {
-    return this.repository.get(token)
+  getDependency(token: DependencyTokenInput) {
+    return this.repository.get(resolveForwardRef(token))
   }
 }

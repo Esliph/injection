@@ -1,3 +1,4 @@
+export * from '@exceptions/circular-dependency.exception'
 export * from '@exceptions/class-constructor-invalid.exception'
 export * from '@exceptions/code-errors'
 export * from '@exceptions/creation-method-missing.exception'

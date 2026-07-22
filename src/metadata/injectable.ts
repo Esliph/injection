@@ -1,19 +1,19 @@
 import { MetadataTarget, Reflect } from '@esliph/metadata'
 
-import { DependencyToken } from '@common/types/dependency'
+import { DependencyTokenInput } from '@common/types/dependency'
 import { Scope } from '@enums/scope'
 import { ClassConstructor } from '@utils/types'
 
 const INJECTABLE_DEPENDENCY_KEY = 'injectable:dependency'
 
 export type InjectableMetadata = {
-  token: DependencyToken
+  token: DependencyTokenInput
   scope?: Scope
   useClass: ClassConstructor
 }
 
 export type InjectableProps = {
-  token?: DependencyToken
+  token?: DependencyTokenInput
   scope?: Scope
 }
 
